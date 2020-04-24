@@ -1,0 +1,21 @@
+{
+  "$schema-version": "0.0.1",
+  "description": "EIS to Azure IoT Edge Runtime Bridge",
+  "image": {
+    "repository": "$AZ_CONTAINER_REGISTRY/eisazurebridge",
+    "tag": {
+      "version": "0.0.1",
+      "platforms": {
+        "amd64": "./Dockerfile"
+      }
+    },
+    "buildOptions": [
+      "--build-arg EIS_VERSION=$EIS_VERSION",
+      "--build-arg EIS_USER_NAME=$EIS_USER_NAME",
+      "--build-arg EIS_UID=$EIS_UID",
+      "--build-arg AZ_CONTAINER_REGISTRY=$AZ_CONTAINER_REGISTRY"
+    ],
+    "contextPath": "./"
+  },
+  "language": "python"
+}

@@ -1,0 +1,31 @@
+{
+    "AzureBlobStorageonIoTEdge": {
+        "type": "docker",
+        "status": "running",
+        "restartPolicy": "always",
+        "version": "1.0",
+        "settings": {
+            "image": "mcr.microsoft.com/azure-blob-storage",
+            "createOptions": {
+                "Env": [
+                    "LOCAL_STORAGE_ACCOUNT_NAME=$AZ_BLOB_STORAGE_ACCOUNT_NAME",
+                    "LOCAL_STORAGE_ACCOUNT_KEY=$AZ_BLOB_STORAGE_ACCOUNT_KEY"
+                ],
+                "HostConfig": {
+                    "Binds": [
+                        "az-blob-storage-volume:/blobroot"
+                    ]
+                }
+            }
+        }
+    },
+    "properties.desired": {
+        "deviceToCloudUploadProperties": {
+            "uploadOn": false
+        },
+        "deviceAutoDeleteProperties": {
+            "deleteOn": true,
+            "deleteAfterMinutes": 5
+        }
+    }
+}

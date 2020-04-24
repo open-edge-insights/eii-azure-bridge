@@ -1,0 +1,61 @@
+{
+    "EISAzureBridge": {
+        "version": "1.0",
+        "type": "docker",
+        "status": "running",
+        "restartPolicy": "always",
+        "env": { },
+        "settings": {
+            "image": "${MODULES.EISAzureBridge}",
+            "createOptions": {
+                "Env": [
+                    "AppName=EISAzureBridge",
+                    "DEV_MODE=$DEV_MODE",
+                    "PROFILING_MODE=$PROFILING_MODE",
+                    "ETCD_HOST=$ETCD_HOST",
+                    "ZMQ_RECV_HWM=1000",
+                    "SubTopics=VideoIngestion/camera1_stream",
+                    "camera1_stream_cfg=zmq_ipc,${SOCKET_DIR}",
+                    "no_proxy=localhost,127.0.0.1,$ETCD_HOST,azureblobstorageoniotedge"
+                ],
+                "Volumes": {
+                    "/EIS/sockets": {}
+                },
+                "HostConfig": {
+                    "Binds": [
+                        "$EIS_INSTALL_PATH/sockets:/EIS/sockets:rw"
+                    ],
+                    "Mounts": [
+                        {
+                            "Target": "/run/secrets/ca_etcd",
+                            "Source": "$EIS_CERTIFICATES/ca/ca_certificate.pem",
+                            "Type": "bind",
+                            "ReadOnly": true
+                        },
+                        {
+                            "Target": "/run/secrets/etcd_root_cert",
+                            "Source": "$EIS_CERTIFICATES/root/root_client_certificate.pem",
+                            "Type": "bind",
+                            "ReadOnly": true
+                        },
+                        {
+                            "Target": "/run/secrets/etcd_root_key",
+                            "Source": "$EIS_CERTIFICATES/root/root_client_key.pem",
+                            "Type": "bind",
+                            "ReadOnly": true
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "properties.desired": {
+        "log_level": "INFO",
+        "topics": {
+            "camera1_stream": {
+                "az_output_topic": "camera1_stream"
+            }
+        },
+        "eis_config": "{}"
+    }
+}

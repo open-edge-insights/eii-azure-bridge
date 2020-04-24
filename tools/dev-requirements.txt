@@ -1,0 +1,2 @@
+iotedgehubdev==0.13.0
+iotedgedev==2.1.4

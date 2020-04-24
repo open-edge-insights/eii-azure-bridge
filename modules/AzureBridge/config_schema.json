@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "EISAzureBridge",
+    "type": "object",
+    "properties": {
+        "topics": {
+            "type": "object",
+            "description": "Topics to subscribe to and publish over the Azure Edge Runtime, each key is an EIS Message bus topic",
+            "additionalProperties": {
+                "$ref": "#/definitions/topic_def",
+                "description": "Each additional property's key must be the EMB topic string"
+            }
+        },
+        "eis_config": {
+            "type": "string",
+            "description": "EIS ETCD configuration object, see EIS documentation"
+        }
+    },
+    "required": ["topics", "eis_config"],
+    "definitions": {
+        "topic_def": {
+            "$id": "#topic_def",
+            "type": "object",
+            "properties": {
+                "az_output_topic": {
+                    "type": "string",
+                    "definition": "Output stream name in Azure Edge Runtime"
+                },
+                "az_blob_container_name": {
+                    "type": "string",
+                    "definition": "Azure Blob Storage container name for all images (note: not an actual container, see Azure Blob Storage documentation)"
+                }
+            },
+            "required": ["az_output_topic"]
+        },
+        "emb_socket_file": {
+            "$id": "#emb_socket_file",
+            "type": "object",
+            "description": "Object for specifiying a specific socket file for IPC communication",
+            "properties": {
+                "socket_file": {
+                    "type": "string",
+                    "definition": "File in the socket directory to use"
+                }
+            },
+            "required": ["socket_file"]
+        }
+    }
+}
