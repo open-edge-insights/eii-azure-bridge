@@ -1,0 +1,14 @@
+{
+    "SimpleSubscriber": {
+        "version": "1.0",
+        "type": "docker",
+        "status": "running",
+        "restartPolicy": "always",
+        "settings": {
+            "image": "${MODULES.SimpleSubscriber}"
+        }
+    },
+    "routes": {
+        "BridgeToSimpleSubscriber": "FROM /messages/modules/EISAzureBridge/outputs/camera1_stream INTO BrokeredEndpoint(\"/modules/SimpleSubscriber/inputs/input1\")"
+    }
+}

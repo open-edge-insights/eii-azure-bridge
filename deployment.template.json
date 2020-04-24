@@ -1,0 +1,288 @@
+{
+    "$schema-template": "2.0.0",
+    "modulesContent": {
+        "$edgeAgent": {
+            "properties.desired": {
+                "schemaVersion": "1.0",
+                "runtime": {
+                    "type": "docker",
+                    "settings": {
+                        "minDockerVersion": "v1.25",
+                        "loggingOptions": "",
+                        "registryCredentials": {
+                            "eisazbridgectrregistry": {
+                                "username": "$AZ_CONTAINER_REGISTRY_USERNAME",
+                                "password": "$AZ_CONTAINER_REGISTRY_PASSWORD",
+                                "address": "$AZ_CONTAINER_REGISTRY"
+                            }
+                        }
+                    }
+                },
+                "systemModules": {
+                    "edgeAgent": {
+                        "type": "docker",
+                        "settings": {
+                            "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
+                            "createOptions": {}
+                        }
+                    },
+                    "edgeHub": {
+                        "type": "docker",
+                        "status": "running",
+                        "restartPolicy": "always",
+                        "env": {
+                            "UpstreamProtocol": {
+                                "value": "AmqpWs"
+                            }
+                        },
+                        "settings": {
+                            "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
+                            "createOptions": {
+                                "HostConfig": {
+                                    "PortBindings": {
+                                        "5671/tcp": [
+                                            {
+                                                "HostPort": "5671"
+                                            }
+                                        ],
+                                        "8883/tcp": [
+                                            {
+                                                "HostPort": "8883"
+                                            }
+                                        ],
+                                        "443/tcp": [
+                                            {
+                                                "HostPort": "443"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "modules": {
+                    "AzureBlobStorageonIoTEdge": {
+                        "type": "docker",
+                        "status": "running",
+                        "restartPolicy": "always",
+                        "version": "1.0",
+                        "settings": {
+                            "image": "mcr.microsoft.com/azure-blob-storage",
+                            "createOptions": {
+                                "Env": [
+                                    "LOCAL_STORAGE_ACCOUNT_NAME=$AZ_BLOB_STORAGE_ACCOUNT_NAME",
+                                    "LOCAL_STORAGE_ACCOUNT_KEY=$AZ_BLOB_STORAGE_ACCOUNT_KEY"
+                                ],
+                                "HostConfig": {
+                                    "Binds": [
+                                        "az-blob-storage-volume:/blobroot"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "SimpleSubscriber": {
+                        "version": "1.0",
+                        "type": "docker",
+                        "status": "running",
+                        "restartPolicy": "always",
+                        "settings": {
+                            "image": "${MODULES.SimpleSubscriber}"
+                        }
+                    },
+                    "EISAzureBridge": {
+                        "version": "1.0",
+                        "type": "docker",
+                        "status": "running",
+                        "restartPolicy": "always",
+                        "env": {
+                            "AZURE_STORAGE_CONNECTION_STRING": {
+                                "value": "DefaultEndpointsProtocol=https;AccountName=$AZ_BLOB_STORAGE_ACCOUNT_NAME;AccountKey=$AZ_BLOB_STORAGE_ACCOUNT_KEY;BlobEndpoint=http://AzureBlobStorageonIoTEdge:11002/$AZ_BLOB_STORAGE_ACCOUNT_NAME"
+                            },
+                            "AZ_BLOB_STORAGE_ACCOUNT_KEY": {
+                                "value": "$AZ_BLOB_STORAGE_ACCOUNT_KEY"
+                            }
+                        },
+                        "settings": {
+                            "image": "${MODULES.EISAzureBridge}",
+                            "createOptions": {
+                                "Env": [
+                                    "AppName=EISAzureBridge",
+                                    "DEV_MODE=$DEV_MODE",
+                                    "PROFILING_MODE=$PROFILING_MODE",
+                                    "ETCD_HOST=$ETCD_HOST"
+                                ],
+                                "Volumes": {
+                                    "/EIS/sockets": {}
+                                },
+                                "HostConfig": {
+                                    "Binds": [
+                                        "/opt/intel/eis/sockets:/EIS/sockets:rw"
+                                    ],
+                                    "Mounts": [
+                                        {
+                                            "Target": "/run/secrets/ca_etcd",
+                                            "Source": "$EIS_CERTIFICATES/ca/ca_certificate.pem",
+                                            "Type": "bind",
+                                            "ReadOnly": true
+                                        },
+                                        {
+                                            "Target": "/run/secrets/etcd_root_cert",
+                                            "Source": "$EIS_CERTIFICATES/root/root_client_certificate.pem",
+                                            "Type": "bind",
+                                            "ReadOnly": true
+                                        },
+                                        {
+                                            "Target": "/run/secrets/etcd_root_key",
+                                            "Source": "$EIS_CERTIFICATES/root/root_client_key.pem",
+                                            "Type": "bind",
+                                            "ReadOnly": true
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "ia_video_ingestion": {
+                        "version": "1.0",
+                        "type": "docker",
+                        "status": "running",
+                        "restartPolicy": "always",
+                        "settings": {
+                            "image": "$AZ_CONTAINER_REGISTRY/ia_video_ingestion:$EIS_VERSION",
+                            "createOptions": {
+                                "Hostname": "ia_video_ingestion",
+                                "User": "$EIS_UID",
+                                "Env": [
+                                    "AppName=VideoIngestion",
+                                    "DEV_MODE=true",
+                                    "PROFILING_MODE=false",
+                                    "no_proxy=localhost,127.0.0.1,localhost,",
+                                    "ETCD_HOST=",
+                                    "Clients=VideoAnalytics,Visualizer,RestDataExport,WebVisualizer,TLS_RemoteAgent",
+                                    "CertType=zmq",
+                                    "ZMQ_RECV_HWM=1000",
+                                    "PubTopics=camera1_stream",
+                                    "camera1_stream_cfg=zmq_ipc,/EIS/sockets/"
+                                ],
+                                "Volumes": {
+                                    "/opt/Intel/OpenCL/Boards": {},
+                                    "/dev": {},
+                                    "/EIS/sockets": {},
+                                    "/var/tmp": {},
+                                    "/opt/altera": {},
+                                    "/opt/intel/intelFPGA": {}
+                                },
+                                "NetworkingConfig": {
+                                    "EndpointsConfig": {
+                                        "host": {}
+                                    }
+                                },
+                                "HostConfig": {
+                                    "ReadonlyRootfs": true,
+                                    "Privileged": true,
+                                    "NetworkMode": "host",
+                                    "Devices": [
+                                        {
+                                            "PathOnHost": "/dev/dri",
+                                            "PathInContainer": "/dev/dri",
+                                            "CgroupPermissions": "rwm"
+                                        },
+                                        {
+                                            "PathOnHost": "/dev/",
+                                            "PathInContainer": "/dev/",
+                                            "CgroupPermissions": "rwm"
+                                        },
+                                        {
+                                            "PathOnHost": "/dev/acla10_1150_sg10",
+                                            "PathInContainer": "/dev/acla10_1150_sg10",
+                                            "CgroupPermissions": "rwm"
+                                        }
+                                    ],
+                                    "Binds": [
+                                        "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards:rw",
+                                        "/dev:/dev:rw",
+                                        "edgeinsightssoftware_vol_eis_socket:/EIS/sockets:rw",
+                                        "/var/tmp:/var/tmp:rw",
+                                        "/opt/altera:/opt/altera:rw",
+                                        "/opt/intel/intelFPGA:/opt/intel/intelFPGA:rw"
+                                    ],
+                                    "LogConfig": {
+                                        "Type": "",
+                                        "Config": {}
+                                    },
+                                    "Mounts": [
+                                        {
+                                            "Target": "/run/secrets/ca_etcd",
+                                            "Source": "$EIS_CERTIFICATES/ca/ca_certificate.pem",
+                                            "Type": "bind",
+                                            "ReadOnly": true
+                                        },
+                                        {
+                                            "Target": "/run/secrets/etcd_VideoIngestion_cert",
+                                            "Source": "$EIS_CERTIFICATES/VideoIngestion/VideoIngestion_client_certificate.pem",
+                                            "Type": "bind",
+                                            "ReadOnly": true
+                                        },
+                                        {
+                                            "Target": "/run/secrets/etcd_VideoIngestion_key",
+                                            "Source": "$EIS_CERTIFICATES/VideoIngestion/VideoIngestion_client_key.pem",
+                                            "Type": "bind",
+                                            "ReadOnly": true
+                                        }
+                                    ]
+                                },
+                                "Labels": {
+                                    "com.docker.compose.project": "edgeinsightssoftware",
+                                    "com.docker.compose.service": "ia_video_ingestion",
+                                    "com.docker.compose.oneoff": "False",
+                                    "com.docker.compose.container-number": "1",
+                                    "com.docker.compose.version": "1.24.0",
+                                    "com.docker.compose.config-hash": "0e54529e49b61730ed49af6dd539f8dd0eee89a1c9dea8414aa132deb137cd4f"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "$edgeHub": {
+            "properties.desired": {
+                "schemaVersion": "1.0",
+                "routes": {
+                    "BridgeToSimpleSubscriber": "FROM /messages/modules/EISAzureBridge/outputs/camera1_stream INTO BrokeredEndpoint(\"/modules/SimpleSubscriber/inputs/input1\")"
+                },
+                "storeAndForwardConfiguration": {
+                    "timeToLiveSecs": 7200
+                }
+            }
+        },
+        "EISAzureBridge": {
+            "properties.desired": {
+                "log_level": "DEBUG",
+                "msgbus_config": {
+                    "type": "zmq_ipc",
+                    "socket_dir": "/EIS/sockets"
+                },
+                "topics": {
+                    "camera1_stream": {
+                        "az_output_topic": "camera1_stream"
+                    }
+                },
+                "eis_config": "{}"
+            }
+        },
+        "AzureBlobStorageonIoTEdge": {
+            "properties.desired": {
+                "deviceToCloudUploadProperties": {
+                    "uploadOn": false
+                },
+                "deviceAutoDeleteProperties": {
+                    "deleteOn": true,
+                    "deleteAfterMinutes": 5
+                }
+            }
+        }
+    }
+}
