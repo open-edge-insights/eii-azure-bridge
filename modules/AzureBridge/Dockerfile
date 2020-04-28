@@ -26,7 +26,7 @@ ARG EIS_UID
 ARG EIS_USER_NAME
 RUN useradd -r -u ${EIS_UID} -G video ${EIS_USER_NAME}
 
-FROM eisazbridgectrregistry.azurecr.io/ia_common:$EIS_VERSION as common
+FROM $AZ_CONTAINER_REGISTRY/ia_common:$EIS_VERSION as common
 
 FROM ia_eisbase
 
