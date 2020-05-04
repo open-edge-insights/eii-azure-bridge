@@ -15,22 +15,12 @@
         "max_workers":4,
         "udfs": [
             {
-                "name": "pcb.pcb_filter",
+                "name": "sample_onnx.onnx_udf",
                 "type": "python",
-                "scale_ratio": 4,
-                "training_mode": "false",
-                "n_total_px": 300000,
-                "n_left_px": 1000,
-                "n_right_px": 1000
-            },
-            {
-                "name": "pcb.pcb_classifier",
-                "type": "python",
-                "ref_img": "common/udfs/python/pcb/ref/ref.png",
-                "ref_config_roi": "common/udfs/python/pcb/ref/roi_2.json",
-                "model_xml": "common/udfs/python/pcb/ref/model_2.xml",
-                "model_bin": "common/udfs/python/pcb/ref/model_2.bin",
-                "device": "CPU"
+                "aml_ws": "",
+                "aml_subscription_id": "",
+                "model_name": "",
+                "download_model": true
             }
         ]
     },
