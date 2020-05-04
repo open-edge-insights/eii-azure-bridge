@@ -19,7 +19,10 @@
                     "CertType=zmq",
                     "ZMQ_RECV_HWM=1000",
                     "PubTopics=camera1_stream",
-                    "camera1_stream_cfg=zmq_ipc,/EIS/sockets/"
+                    "camera1_stream_cfg=zmq_ipc,/EIS/sockets/",
+                    "AML_TENANT_ID=$AML_TENANT_ID",
+                    "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
+                    "AML_PRINCIPAL_PASS=$AML_PRINCIPAL_PASS"
                 ],
                 "Volumes": {
                     "/opt/Intel/OpenCL/Boards": {},
@@ -35,7 +38,6 @@
                     }
                 },
                 "HostConfig": {
-                    "ReadonlyRootfs": true,
                     "Privileged": true,
                     "NetworkMode": "host",
                     "Devices": [

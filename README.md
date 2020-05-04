@@ -1,5 +1,9 @@
 # EIS Azure Bridge
 
+> **NOTE:** The source code for this project must be placed under the `IEdgeInsights`
+> directory in the source code for EIS for the various scripts and commands in
+> this README to work.
+
 The EIS Azure Bridge serves as a connector between EIS and the Microsoft
 Azure IoT Edge Runtime ecosystem. It does this by allowing the following
 forms of bridging:
@@ -52,6 +56,24 @@ provided by Microsoft below:
 * [Create Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)
 * [Create Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-create-through-portal)
 * [Register an Azure IoT Device](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device)
+* [Create AzureML Workspace](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-manage-workspace)
+* [Push Model to AzureML Workspace](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-deploy-existing-model)
+    > **NOTE:** If you already have an existing model in AzureML, do not worry about doing this step
+    > If you need a model to push, a good resource can be found [here](https://notebooks.azure.com/azureml/projects/azureml-getting-started/html/how-to-use-azureml/deployment/onnx/onnx-modelzoo-aml-deploy-resnet50.ipynb)
+
+For the AzureML Workspace, you also need to setup the workspace to be able
+authenticate connections using Service Principal Authentication. To set this
+up, follow the instructions provided [here](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-setup-authentication#set-up-service-principal-authentication).
+
+In this setup process, you will execute a command to similar to the following:
+
+```sh
+$ az ad sp create-for-rbac --sdk-auth --name ml-auth
+```
+
+After executing this command you will see a JSON blob printed to your console
+window. Save the `clientId`, `clientSecret`, `subscriptionId`, and `tenantId`
+for configuring the sample ONNX EIS UDF later.
 
 All of the tutorials provided above provide options for creating these instances
 via Visual Studio Code, the Azure Portal, or the Azure CLI. If you wish to use
@@ -124,8 +146,39 @@ provided at [this link](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-i
 ## <a name="eis-build-push"></a>Build and Push EIS Containers
 
 After setting up your development system, build and push the EIS containers
-to your Azure Contianer Registry. Follow the instructions provided in the EIS
-READMEs and User Guide.
+to your Azure Contianer Registry.
+
+If you are going to use the Sample ONNX EIS UDF, then you must copy the UDF
+source code into the EIS `IEdgeInsights/common/udfs/python/` directory. Do this
+with the following command:
+
+```sh
+$ cp -r sample_onnx/ ../common/udfs/python
+```
+> **NOTE:** The command above assume you have the EIS Azure Bridge source code
+> as a subdirectory of the EIS source code.
+
+Additionally, you will need to add some Python packages to be installed when
+the Video Ingestion container gets built. Modify the `IEdgeInsights/VideoIngestion/vi_requirements.txt`
+file to look like the following:
+
+```
+numpy==1.18.0
+onnxruntime==1.2.0
+azureml-sdk==1.4.0
+```
+
+Once you have completed these steps, follow the instructions provided in the EIS
+READMEs and User Guide to build and push the EIS containers to a container
+registry.
+
+**IMPORTANT NOTE**
+
+When initially building the EIS containers do not set the `DOCKER_REGISTRY`
+variable in the `docker_setup/.env` file. Build the containers, and then set
+the registry URL. After that, build the EIS containers again (this will not
+re-build any binaries, it will just re-tag the container images), and then
+run the `docker-compose push` command.
 
 ## Build and Push EIS Azure Bridge Containers
 
@@ -163,6 +216,12 @@ through the `iotedgehubdev` tool, follow the instructions below:
     > **NOTE:** Execute the following command from the
     > `<EIS root source code>/docker_setup/provision/`directory.
 
+    Before running the following command, make sure to modify the `docker_setup/.env`
+    file according to the EIS configuration you want to use.
+
+    Also, set the `ETCD_HOST` variable in the `docker_setup/.env` file in EIS
+    to the IP address of your development system.
+
     ```sh
     $ sudo -H -E ./provision_eis.sh ../docker-compose.yml
     ```
@@ -171,10 +230,7 @@ through the `iotedgehubdev` tool, follow the instructions below:
     since the EIS Azure Bridge will replace all of the configuration in ETCD
     when it starts up.
 
-    > **NOTE:** Make sure to set the values according to how you want to run
-    > EIS in the `docker_setup/.env` file.
-
-2. Populate the Azure Container Registry variables in the `./.env` file. This
+2. Populate the Azure Container Registry variables in the `.env` file. This
     should include populating the `AZ_CONTAINER_REGISTRY`, `AZ_CONTAINER_REGISTRY_USERNAME`,
     and `AZ_CONTAINER_REGISTRY_PASSWORD` variables. All of these values should
     have been obtained when creating your Azure Container Registry.
@@ -182,7 +238,29 @@ through the `iotedgehubdev` tool, follow the instructions below:
     > **NOTE:** The `AZ_CONTAINER_REGISTRY` variable will be a value that looks
     > like `*.azurecr.io`.
 
-3. **(OPTIONAL)** If you wish to store the images from the EIS video ingestion
+3. Populate the AzureML variables in the `.env` file. This should include
+    populating the `AML_TENANT_ID`, `AML_PRINCIPAL_ID`, and `AML_PRINCIPAL_PASS`
+    environmental variables. The values of these will be the values saved when
+    you created the Service Principal Authentication for your AzureML workspace
+    in the [Azure Cloud Setup](#az-cloud-setup) section. The table below
+    provides the necessary mappings.
+
+    | Environmental Variable |  Mapped Value  |
+    | :--------------------: | :------------: |
+    | `AML_TENANT_ID`        | `tenantId`     |
+    | `AML_PRINCIPAL_ID`     | `clientId`     |
+    | `AML_PRINCIPAL_PASS`   | `clientSecret` |
+
+4. Configure sample ONNX EIS UDF. Open the `config/eis_config.json` file. Under
+    the `udfs` key, modify the following (key, value) pairs:
+
+    |           Key         |                                      Value                                |
+    | --------------------- | ------------------------------------------------------------------------- |
+    | `aml_ws`              | AzureML workspace name                                                    |
+    | `aml_subscription_id` | `subscriptionId` saved from creating the Service Principal Authentication |
+    | `model_name`          | Name of the model in your AzureML workspace                               |
+
+5. **(OPTIONAL)** If you wish to store the images from the EIS video ingestion
     service in a local Azure Blob Storage instance, then you must fill in the
     `AZ_BLOB_STORAGE_ACCOUNT_NAME` variable in the `.env` file.
 
@@ -190,7 +268,7 @@ through the `iotedgehubdev` tool, follow the instructions below:
     This script will populate the values in the `.env` file including the account
     key.
 
-4. Generate an Azure IoT Hub deployment manifest
+6. Generate an Azure IoT Hub deployment manifest
 
     ```sh
     $ ./tools/generate-deployment-manifest.sh example EISAzureBridge SimpleSubscriber ia_video_ingestion
@@ -214,7 +292,7 @@ through the `iotedgehubdev` tool, follow the instructions below:
     tied to a cloud instance, but will be how the EIS Azure Bridge logs into
     the local instance of Azure Blob Storage deployed on your edge device.
 
-5. Setup the `iotedgehubdev` simulator with the following command:
+7. Setup the `iotedgehubdev` simulator with the following command:
 
     ```sh
     $ sudo iotedgehubdev setup -c "<edge-device-connection-string>"
@@ -223,7 +301,7 @@ through the `iotedgehubdev` tool, follow the instructions below:
     > **NOTE:** This setup is only required the first time you run the EIS Azure
     > Bridge in a simulator.
 
-5. Run the simulator using the command below:
+8. Run the simulator using the command below:
 
     ```sh
     $ ./tools/run-simulator.sh ./example.template.json
@@ -287,6 +365,18 @@ to ease this process. To complete this steps, follow the instructions below.
     | `AZ_CONTAINER_REGISTY_USERNAME` | User name for the container registry login (obtained during creation)        |
     | `AZ_CONTAINER_REGISTY_PASSWORD` | Password for the container registry login (obtained during creation)         |
     | `AZ_BLOB_STORAGE_ACCOUNT_NAME`  | **(OPTIONAL)** User name for the local Azure Blob Storage instance           |
+    | `AML_TENANT_ID`                 | The `tenantId` saved in the Azure Cloud setup                                |
+    | `AML_PRINCIPAL_ID`              | The `clientId` saved in the Azure Cloud setup                                |
+    | `AML_PRINCIPAL_PASS`            | The `clientSecret` saved in the Azure Cloud setup                            |
+
+
+    The `.env` file in this folder will pull from your `IEdgeInsights/docker_setup/.env`
+    file when generating your deployment manifest later in these steps. Make sure
+    that you have configured that file according to the EIS configuration you
+    have on your target system.
+
+    Especially, make sure to set the `ETCD_HOST` to the IP address of your
+    target machine. This is a current limitation of the EIS Azure Bridge.
 
     > **NOTE:** If you have chosen to use the Azure Blob Storage service, then you will
     > be prompted to provide an Azure Blob Storage account name. This is not
@@ -297,9 +387,15 @@ to ease this process. To complete this steps, follow the instructions below.
     > EIS environment variables. See the EIS documentation for more details.
 
 2. Configure EIS pre-load configuration. This configuration is at `config/eis_config.json`.
-    Modify this file according to how you want EIS to run. By default, it is configured
-    to run the PCB demo, see the EIS documentation for more information on modifying
-    this file.
+    Modify this file according to how you want EIS to run. By default, EIS is
+    configured to run the sample ONNX EIS UDF. To configure this UDF modify the
+    following (key, value) pairs under the `udfs` key:
+
+    |           Key         |                                      Value                                |
+    | --------------------- | ------------------------------------------------------------------------- |
+    | `aml_ws`              | AzureML workspace name                                                    |
+    | `aml_subscription_id` | `subscriptionId` saved from creating the Service Principal Authentication |
+    | `model_name`          | Name of the model in your AzureML workspace                               |
 
 3. Generate your Azure IoT Hub deployment manifest
 
@@ -517,3 +613,5 @@ references:
 
 * [Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/)
 * [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/)
+* [How to Deploy AzureML Models](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-deploy-and-where)
+* [AzureML Tutorial: Train your first ML Model](https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-1st-experiment-sdk-train)
