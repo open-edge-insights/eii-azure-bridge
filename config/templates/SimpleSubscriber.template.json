@@ -5,10 +5,10 @@
         "status": "running",
         "restartPolicy": "always",
         "settings": {
-            "image": "${MODULES.SimpleSubscriber}"
+            "image": "${DOCKER_REGISTRY}ia_azure_simple_subscriber:${EIS_VERSION}"
         }
     },
     "routes": {
-        "BridgeToSimpleSubscriber": "FROM /messages/modules/EISAzureBridge/outputs/camera1_stream INTO BrokeredEndpoint(\"/modules/SimpleSubscriber/inputs/input1\")"
+        "BridgeToSimpleSubscriber": "FROM /messages/modules/EISAzureBridge/outputs/* INTO BrokeredEndpoint(\"/modules/SimpleSubscriber/inputs/input1\")"
     }
 }

@@ -31,12 +31,15 @@ VARS = [
     'EIS_USER_NAME',
     'EIS_UID',
     'ETCD_HOST',
+    'ETCD_PREFIX',
     'SOCKET_DIR',
-    'EIS_INSTALL_PATH'
+    'EIS_INSTALL_PATH',
+    'DOCKER_REGISTRY',
+    'HOST_IP'
 ]
 
 # Paths to .env files
-parent_env_fn = os.path.join('..', 'docker_setup', '.env')
+parent_env_fn = os.path.join('..', 'build', '.env')
 this_env_fn = '.env'
 
 # Verify required files exist
@@ -45,7 +48,7 @@ assert os.path.exists(this_env_fn), f'Cannot find {this_env_fn}'
 
 # Read .env files
 with open(parent_env_fn, 'r') as f:
-    parent_env = f.read()
+    parent_env = list(f.readlines())
 
 with open(this_env_fn, 'r') as f:
     this_env = f.read()
@@ -53,14 +56,20 @@ with open(this_env_fn, 'r') as f:
 # Parse needed values from the parent_env file
 for var in VARS:
     try:
-        # Get value of the var
-        value = re.findall(f'(?:{var}=)(.+)', parent_env)[0]
+        for line in parent_env:
+            # Make sure the line starts with to make sure we don't accidentally
+            # match with a comment in the ../build/.env file
+            if line.startswith(var):
+                # Get value of the var
+                res = re.findall(f'(?:{var}=)(.+|)', line)
+                if len(res) > 0:
+                    value = res[0]
     except IndexError as e:
         # A value wasn't set, so set it to nothing
         value = ''
 
     # Check if the variable already exists in the .env
-    if re.findall(f'{var}', this_env):
+    if re.findall(f'{var}=(.+|)', this_env):
         # Place the value in this_env
         this_env = re.sub(
                 f'{var}=.+',
@@ -68,6 +77,20 @@ for var in VARS:
                 this_env)
     else:
         this_env += f'\n{var}={value}'
+
+    if var == 'DOCKER_REGISTRY':
+        # Need to populate special variable for the Azure Container Registry
+        # which omits the "/" in the DOCKER_REGISTRY variable
+        # Check if the variable already exists in the .env
+        if re.findall(f'AZ_CONTAINER_REGISTRY=.+', this_env):
+            # Place the value in this_env
+            this_env = re.sub(
+                    f'AZ_CONTAINER_REGISTRY=.+',
+                    f'AZ_CONTAINER_REGISTRY={value[:-1]}',
+                    this_env)
+        else:
+            this_env += f'\nAZ_CONTAINER_REGISTRY={value[:-1]}'
+
 
 # Write the new .env file contents for the EIS Azure Bridge
 with open(this_env_fn, 'w') as f:

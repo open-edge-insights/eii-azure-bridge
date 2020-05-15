@@ -34,7 +34,7 @@ from azure.storage.blob import BlobServiceClient
 
 # EIS Imports
 import eis.msgbus as emb
-from libs.ConfigManager import ConfigManager
+from eis.config_manager import ConfigManager
 from util.log import configure_logging
 
 
@@ -79,7 +79,8 @@ class BridgeState:
 
         # Assign initial state values
         self.loop = asyncio.get_event_loop()
-        self.msgbus_ctx = None
+        self.ipc_msgbus_ctx = None
+        self.tcp_msgbus_ctx = None
         self.config_listener = None
         self.subscriber_listeners = None
         self.subscribers = []
@@ -144,7 +145,7 @@ class BridgeState:
         validate(instance=config, schema=self.schema)
 
         # Reset message bus state if needed
-        if self.msgbus_ctx is not None:
+        if self.ipc_msgbus_ctx is not None or self.tcp_msgbus_ctx is not None:
             # Stop all subscribers
             self.log.debug('Stopping previous subscribers')
             self.subscriber_listeners.cancel()
@@ -155,8 +156,12 @@ class BridgeState:
 
             # Clean up current message bus context
             self.log.debug('Cleaning up old message bus context')
-            del self.msgbus_ctx
-            self.msgbus_ctx = None
+            if self.ipc_msgbus_ctx is not None:
+                del self.ipc_msgbus_ctx
+                self.ipc_msgbus_ctx = None
+            if self.tcp_msgbus_ctx is not None:
+                del self.tcp_msgbus_ctx
+                self.tcp_msgbus_ctx = None
 
         # Configure logging
         if 'log_level' in config:
@@ -167,11 +172,17 @@ class BridgeState:
         self.log = configure_logging(log_level, __name__, False)
 
         self.log.info('Getting EIS Message Bus configuration')
-        msgbus_config = get_msgbus_config(self.cfg_client, self.dev_mode)
+        ipc_msgbus_config, tcp_msgbus_config = get_msgbus_config(
+                self.app_name, self.cfg_client, self.dev_mode)
+
+        self.log.debug(f'msgbus configs: \nIPC: {ipc_msgbus_config}, \nTCP:{tcp_msgbus_config}')
 
         # Initialize message bus context
         self.log.info('Initializing EIS Message Bus')
-        self.msgbus_ctx = emb.MsgbusContext(msgbus_config)
+        if ipc_msgbus_config is not None:
+            self.ipc_msgbus_ctx = emb.MsgbusContext(ipc_msgbus_config)
+        if tcp_msgbus_config is not None:
+            self.tcp_msgbus_ctx = emb.MsgbusContext(tcp_msgbus_config)
 
         # Initialize subscribers
         listener_coroutines = []
@@ -189,17 +200,30 @@ class BridgeState:
                 else:
                     cn = None
 
-                subscriber = self.msgbus_ctx.new_subscriber(in_topic)
+                msgbus_type, addr = os.environ[f'{in_topic}_cfg'].split(',')
+
+                if msgbus_type == 'zmq_ipc':
+                    subscriber = self.ipc_msgbus_ctx.new_subscriber(in_topic)
+                else:
+                    # It MUST be TCP at this point, this would already have
+                    # been verified when creating the msgbus configurations,
+                    # so there is no need to verify here
+                    subscriber = self.tcp_msgbus_ctx.new_subscriber(in_topic)
+
                 self.subscribers.append(subscriber)
                 listener_coroutines.append(emb_subscriber_listener(
                     self, subscriber, topic_conf['az_output_topic'], cn))
         except Exception:
             # Clean up any existing message bus subscribers that successfully
             # subscribed to data
-            for sub in subscribers:
+            for sub in self.subscribers:
                 sub.close()
-            del self.msgbus_ctx
-            self.msgbus_ctx = None
+            if self.ipc_msgbus_ctx is not None:
+                del self.ipc_msgbus_ctx
+                self.ipc_msgbus_ctx = None
+            if self.tcp_msgbus_ctx is not None:
+                del self.tcp_msgbus_ctx
+                self.tcp_msgbus_ctx = None
             raise
 
         # Schedule task for C2D Listener

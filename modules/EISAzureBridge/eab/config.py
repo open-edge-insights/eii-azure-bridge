@@ -19,11 +19,12 @@
 # IN THE SOFTWARE.
 """EIS Azure Bridge digital twin configuration listener and utilities.
 """
+import os
 import json
 import logging
 import traceback as tb
 from dictdiffer import diff, patch, swap, revert
-from util.msgbusutil import MsgBusUtil
+from eis.env_config import EnvConfig
 from util.util import Util
 
 
@@ -69,6 +70,8 @@ def find_root_changes(orig, new):
                 key = key_info[0]
             else:
                 key = key_info
+            if key == '':
+                continue
             base_key = key.split('.')[0]
             if base_key not in changed_keys:
                 changed_keys.append(base_key)
@@ -88,31 +91,63 @@ def find_root_changes(orig, new):
     return (changed_keys, removed_keys,)
 
 
-def get_msgbus_config(config_client, dev_mode):
+def get_msgbus_config(app_name, config_client, dev_mode):
     """Helper method to construct the EIS Message Bus configuration dictionary.
 
+    :param str app_name: EISAzureBridge app name
     :param config_client: EIS Config Manager client
     :param bool dev_mode: Flag for whether or not execution is in dev mode
-    :return: Message bus configuration
-    :rtype: dict
+    :return: Tuple of (IPC msgbus config, TCP msgbus config)
+    :rtype: tuple
     """
-    topics = MsgBusUtil.get_topics_from_env('sub')
+    topics = EnvConfig.get_topics_from_env('sub')
 
-    # Currently only IPC communication is supported, this will change in the
-    # future
-    msgbus_config = {'type': 'zmq_ipc'}
+    ipc_msgbus_config = None
+    tcp_msgbus_config = None
 
     for topic in topics:
         publisher, topic = topic.split('/')
-        cfg = MsgBusUtil.get_messagebus_config(
-                topic, 'sub', publisher, config_client, dev_mode)
-        assert cfg['type'] == 'zmq_ipc', 'Only IPC communication is supported'
-        if topic in cfg:
-            msgbus_config[topic] = cfg[topic]
+        cfg_env = f'{topic}_cfg'
+        if cfg_env not in os.environ:
+            raise RuntimeError(f'Missing env var {cfg_env} for topic config')
+        mode, addr = os.environ[f'{topic}_cfg'].split(',')
+        mode = mode.strip()
+        addr = addr.strip()
 
-        # Assuming they all have the same socket directory for now, since the
-        # bridge will only have one message bus context for now
-        if 'socket_dir' not in msgbus_config:
-            msgbus_config['socket_dir'] = cfg['socket_dir']
+        if mode == 'zmq_ipc':
+            if ipc_msgbus_config is None:
+                ipc_msgbus_config = {'type': 'zmq_ipc'}
 
-    return msgbus_config
+            if 'socket_dir' not in ipc_msgbus_config:
+                ipc_msgbus_config['socket_dir'] = addr
+            elif ipc_msgbus_config['socket_dir'] != addr:
+                    raise RuntimeError('Different socket dirs specified')
+        elif mode == 'zmq_tcp':
+            if tcp_msgbus_config is None:
+                tcp_msgbus_config = {'type': 'zmq_tcp'}
+
+            host, port = addr.split(':')
+            topic_cfg = {'host': host, 'port': int(port)}
+
+            # Getting the keys if we are not running in dev_mode
+            if not dev_mode:
+                publisher = publisher.strip()
+
+                topic_cfg['server_public_key'] = config_client.GetConfig(
+                        f'/Publickeys/{publisher}')
+                client_public_key = config_client.GetConfig(
+                        f'/Publickeys/{app_name}')
+                client_secret_key = config_client.GetConfig(
+                        f'/{app_name}/private_key')
+
+                assert client_public_key is not None, 'Missing public key'
+                assert client_secret_key is not None, 'Missing secret key'
+
+                topic_cfg['client_public_key'] = client_public_key
+                topic_cfg['client_secret_key'] = client_secret_key
+
+            tcp_msgbus_config[topic] = topic_cfg
+        else:
+            raise RuntimeError(f'Unknown msgbus type: {mode}')
+
+    return ipc_msgbus_config, tcp_msgbus_config

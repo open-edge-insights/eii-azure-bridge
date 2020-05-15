@@ -52,9 +52,26 @@ function check_error() {
     fi
 }
 
+eis_config="../build/provision/config/eis_config.json"
+if [ ! -f "$eis_config" ] ; then
+    log_fatal "EIS config \"${eis_config}\" does not exist, please provision EIS"
+fi
+
+log_info "Populating .env file with EIS .env variables"
+python3 ./tools/populate_dotenv.py
+check_error "Failed to populate .env with EIS variables"
+
+source ./.env
+
 log_info "Generating deployment template"
-python3 ./tools/generate_deployment_template.py $@
-check_error "Failed to generate template"
+if [ "$DEV_MODE" == "true" ] ; then
+    python3 ./tools/generate_deployment_template.py --dev-mode $@
+    check_error "Failed to generate template"
+else
+    python3 ./tools/generate_deployment_template.py $@
+    check_error "Failed to generate template"
+fi
+
 
 # Generate an Azure Blob Storage account key if the service has been specified
 if [[ $@ =~ (^| )AzureBlobStorageonIoTEdge($| ) ]] ; then
@@ -64,12 +81,8 @@ if [[ $@ =~ (^| )AzureBlobStorageonIoTEdge($| ) ]] ; then
 fi
 
 log_info "Populating EIS ETCD pre-load into manifest template"
-python3 ./tools/serialize_eis_config.py $1.template.json ./config/eis_config.json
+python3 ./tools/serialize_eis_config.py $1.template.json $eis_config
 check_error "Failed to populate EIS configuration into manifest template"
-
-log_info "Populating .env file with EIS .env variables"
-python3 ./tools/populate_dotenv.py
-check_error "Failed to populate .env with EIS variables"
 
 log_info "Generating Azure deployment manifest"
 iotedgedev genconfig -f $1.template.json

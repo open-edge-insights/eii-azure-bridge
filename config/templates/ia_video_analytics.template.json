@@ -1,26 +1,33 @@
 {
-    "ia_video_ingestion": {
+    "ia_video_analytics": {
         "version": "1.0",
         "type": "docker",
         "status": "running",
         "restartPolicy": "always",
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_video_ingestion:$EIS_VERSION",
+            "image": "${DOCKER_REGISTRY}ia_video_analytics:$EIS_VERSION",
             "createOptions": {
-                "Hostname": "ia_video_ingestion",
+                "Hostname": "ia_video_analytics",
                 "User": "$EIS_UID",
                 "Env": [
-                    "AppName=VideoIngestion",
+                    "AppName=VideoAnalytics",
                     "DEV_MODE=$DEV_MODE",
                     "PROFILING_MODE=$PROFILING_MODE",
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST",
                     "ETCD_HOST=",
-                    "Clients=VideoAnalytics,Visualizer,RestDataExport,WebVisualizer,TLS_RemoteAgent,EISAzureBridge",
+                    "ETCD_PREFIX=${ETCD_PREFIX}",
+                    "C_LOG_LEVEL=INFO",
+
+                    "Clients=Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport,WebVisualizer,TLSRemoteAgent,EISAzureBridge",
                     "CertType=zmq",
                     "ZMQ_RECV_HWM=1000",
-                    "PubTopics=camera1_stream",
-                    "camera1_stream_cfg=zmq_ipc,/EIS/sockets/",
-                    "Server=zmq_tcp,127.0.0.1:65014",
+
+                    "SubTopics=VideoIngestion/camera1_stream",
+                    "camera1_stream_cfg=zmq_ipc,${SOCKET_DIR}",
+
+                    "PubTopics=camera1_stream_results",
+                    "camera1_stream_results_cfg=zmq_tcp,0.0.0.0:65013",
+
                     "AML_TENANT_ID=$AML_TENANT_ID",
                     "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
                     "AML_PRINCIPAL_PASS=$AML_PRINCIPAL_PASS"
@@ -56,6 +63,11 @@
                             "PathOnHost": "/dev/acla10_1150_sg10",
                             "PathInContainer": "/dev/acla10_1150_sg10",
                             "CgroupPermissions": "rwm"
+                        },
+                        {
+                            "PathOnHost": "/dev/ion",
+                            "PathInContainer": "/dev/ion",
+                            "CgroupPermissions": "rwm"
                         }
                     ],
                     "Binds": [
@@ -78,14 +90,14 @@
                             "ReadOnly": true
                         },
                         {
-                            "Target": "/run/secrets/etcd_VideoIngestion_cert",
-                            "Source": "$EIS_CERTIFICATES/VideoIngestion/VideoIngestion_client_certificate.pem",
+                            "Target": "/run/secrets/etcd_VideoAnalytics_cert",
+                            "Source": "$EIS_CERTIFICATES/VideoAnalytics/VideoAnalytics_client_certificate.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
                         {
-                            "Target": "/run/secrets/etcd_VideoIngestion_key",
-                            "Source": "$EIS_CERTIFICATES/VideoIngestion/VideoIngestion_client_key.pem",
+                            "Target": "/run/secrets/etcd_VideoAnalytics_key",
+                            "Source": "$EIS_CERTIFICATES/VideoAnalytics/VideoAnalytics_client_key.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         }

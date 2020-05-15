@@ -75,6 +75,11 @@ if [ ! -d "/opt/altera" ] ; then
     mkdir -p /opt/altera
 fi
 
+eis_config="../build/provision/config/eis_config.json"
+if [ ! -f "$eis_config" ] ; then
+    log_fatal "EIS config \"${eis_config}\" does not exist, please provision EIS"
+fi
+
 log_info "Populating .env file with EIS .env variables"
 python3 ./tools/populate_dotenv.py
 check_error "Failed to populate .env with EIS variables"
@@ -84,12 +89,8 @@ iotedgedev genconfig -f $deployment
 check_error "Failed to generate deployment manifest"
 
 log_info "Populating EIS configuration into Azure manifest"
-python3 ./tools/serialize_eis_config.py ./$deployment ./config/eis_config.json
+python3 ./tools/serialize_eis_config.py ./$deployment $eis_config
 check_error "Failed to populate EIS configuration into Azure manifest"
-
-log_info "Building Azure modules"
-./tools/build-azure-modules.sh
-check_error "Failed to build Azure modules"
 
 log_info "Running simulator"
 sudo -H -E -u $USER iotedgehubdev start -d ${PWD}/config/$deployment_name.amd64.json -v

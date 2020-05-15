@@ -6,7 +6,7 @@
         "restartPolicy": "always",
         "env": { },
         "settings": {
-            "image": "${MODULES.EISAzureBridge}",
+            "image": "${DOCKER_REGISTRY}ia_eis_azure_bridge:${EIS_VERSION}",
             "createOptions": {
                 "Env": [
                     "AppName=EISAzureBridge",
@@ -14,8 +14,8 @@
                     "PROFILING_MODE=$PROFILING_MODE",
                     "ETCD_HOST=$ETCD_HOST",
                     "ZMQ_RECV_HWM=1000",
-                    "SubTopics=VideoIngestion/camera1_stream",
-                    "camera1_stream_cfg=zmq_ipc,${SOCKET_DIR}",
+                    "SubTopics=VideoAnalytics/camera1_stream_results",
+                    "camera1_stream_results_cfg=zmq_tcp,${HOST_IP}:65013",
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST,azureblobstorageoniotedge"
                 ],
                 "Volumes": {
@@ -52,8 +52,8 @@
     "properties.desired": {
         "log_level": "INFO",
         "topics": {
-            "camera1_stream": {
-                "az_output_topic": "camera1_stream"
+            "camera1_stream_results": {
+                "az_output_topic": "camera1_stream_results"
             }
         },
         "eis_config": "{}"

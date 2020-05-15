@@ -1,4 +1,5 @@
 config/*.amd64.json
+/*.template.json
 **/*.swo
 **/*.swp
 **/*.pyc

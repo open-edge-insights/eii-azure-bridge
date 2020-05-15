@@ -32,7 +32,7 @@ assert os.path.exists(TEMPLATES_DIR), f'Cannot find {TEMPLATES_DIR}'
 # manifest
 SUPPORTED_SERVICES = [
     'EISAzureBridge', 'ia_video_ingestion', 'SimpleSubscriber',
-    'AzureBlobStorageonIoTEdge'
+    'AzureBlobStorageonIoTEdge', 'ia_video_analytics'
 ]
 
 # Parse command line arguments
@@ -75,7 +75,7 @@ for service in args.services:
                     'value': '$AZ_BLOB_STORAGE_ACCOUNT_KEY'
                 }
             }
-    elif service == 'ia_video_ingestion' and args.dev_mode:
+    elif (service == 'ia_video_ingestion' or service == 'ia_video_analytics') and args.dev_mode:
         # Remove certificate mounts if in dev-mode
         del template[service]['settings']['createOptions']['HostConfig']['Mounts']
 
