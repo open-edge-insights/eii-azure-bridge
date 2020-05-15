@@ -1,0 +1,32 @@
+version: '3.6'
+
+# NOTE: This docker-compose file is only used for building the EIS Azure Bridge
+# services.
+
+services:
+    # EIS Azure Bridge service
+    ia_eis_azure_bridge:
+        depends_on:
+            - ia_common
+        image: ${DOCKER_REGISTRY}ia_eis_azure_bridge:${EIS_VERSION}
+        build:
+            context: $PWD/../EISAzureBridge/modules/EISAzureBridge/
+            dockerfile: $PWD/../EISAzureBridge/modules/EISAzureBridge/Dockerfile
+            args:
+                EIS_VERSION: ${EIS_VERSION}
+                EIS_UID: ${EIS_UID}
+                EIS_USER_NAME: ${EIS_USER_NAME}
+                DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        environment:
+            AppName: "EISAzureBridge"
+            CertType: "zmq"
+
+    # Simple subscriber service to land on the Azure IoT Edge Runtime
+    ia_azure_simple_subscriber:
+        image: ${DOCKER_REGISTRY}ia_azure_simple_subscriber:${EIS_VERSION}
+        build:
+            context: $PWD/../EISAzureBridge/modules/SimpleSubscriber/
+            dockerfile: $PWD/../EISAzureBridge/modules/SimpleSubscriber/Dockerfile
+            args:
+                EIS_VERSION: ${EIS_VERSION}
+                DOCKER_REGISTRY: ${DOCKER_REGISTRY}
