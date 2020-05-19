@@ -75,9 +75,15 @@ for service in args.services:
                     'value': '$AZ_BLOB_STORAGE_ACCOUNT_KEY'
                 }
             }
-    elif (service == 'ia_video_ingestion' or service == 'ia_video_analytics') and args.dev_mode:
-        # Remove certificate mounts if in dev-mode
-        del template[service]['settings']['createOptions']['HostConfig']['Mounts']
+
+    if args.dev_mode:
+        try:
+            # Remove certificate mounts if in dev-mode
+            del template[service]['settings']['createOptions']['HostConfig']['Mounts']
+        except KeyError:
+            # Passing this KeyError, because it means that there are no mounts
+            # to remove for the service in order to run it in dev mode
+            pass
 
     if 'routes' in template:
         r = template['routes']
