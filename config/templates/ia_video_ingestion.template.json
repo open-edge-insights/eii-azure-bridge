@@ -14,7 +14,7 @@
                     "DEV_MODE=$DEV_MODE",
                     "PROFILING_MODE=$PROFILING_MODE",
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST",
-                    "ETCD_HOST=",
+                    "ETCD_HOST=$ETCD_HOST",
                     "Clients=VideoAnalytics,Visualizer,RestDataExport,WebVisualizer,TLS_RemoteAgent,EISAzureBridge",
                     "CertType=zmq",
                     "ZMQ_RECV_HWM=1000",
