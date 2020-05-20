@@ -15,7 +15,7 @@
                     "PROFILING_MODE=$PROFILING_MODE",
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST",
                     "ETCD_HOST=$ETCD_HOST",
-                    "Clients=VideoAnalytics,Visualizer,RestDataExport,WebVisualizer,TLS_RemoteAgent,EISAzureBridge",
+                    "Clients=VideoAnalytics,Visualizer,RestDataExport,WebVisualizer,TLSRemoteAgent,EISAzureBridge",
                     "CertType=zmq",
                     "ZMQ_RECV_HWM=1000",
                     "PubTopics=camera1_stream",
