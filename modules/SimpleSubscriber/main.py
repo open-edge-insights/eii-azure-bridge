@@ -21,25 +21,42 @@
 """
 import json
 import asyncio
+import logging
 from azure.iot.device.aio import IoTHubModuleClient
 
 
 async def main():
     """Main method for asyncio.
     """
-    # The client object is used to interact with your Azure IoT hub.
-    print('[INFO] Initializing IoT Hub module client')
-    module_client = IoTHubModuleClient.create_from_edge_environment()
-    await module_client.connect()
+    # Configuring logging
+    log = logging.getLogger('SimpleSuscriber')
+    log.setLevel(logging.INFO)
+
+    # Create console logger
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+
+    # Create logging formatter
+    fmt = logging.Formatter(
+            '[%(asctime)s] %(name)s::%(levelname)s: %(message)s')
+
+    # Apply all logging pieces
+    ch.setFormatter(fmt)
+    log.addHandler(ch)
 
     try:
-        print('[INFO] Running')
+        # The client object is used to interact with your Azure IoT hub.
+        log.info('Initializing IoT Hub module client')
+        module_client = IoTHubModuleClient.create_from_edge_environment()
+        await module_client.connect()
+
+        log.info('Running')
         while True:
             msg = await module_client.receive_message_on_input('input1')
             meta_data = json.loads(msg.data)
-            print(f'[INFO] Received: {json.dumps(meta_data, indent=4)}')
+            log.info(f'Received: {json.dumps(meta_data, indent=4)}')
     except Exception as e:
-        print(f'[ERROR] {e}')
+        log.error(f'Error receiving messages: {e}')
     finally:
         await module_client.disconnect()
 
