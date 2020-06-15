@@ -168,8 +168,7 @@ containers running as well.
 After setting up your development system, build and push the EIS containers
 to your Azure Contianer Registry instance.
 
-To do this, first, download OpenVINO and extract the contents to the `../common/video/`
-direcotory. Then, go to the `../build/` directory in the EIS source code, and execute
+To do this go to the `../build/` directory in the EIS source code, and execute
 the following commands:
 
 ```sh
