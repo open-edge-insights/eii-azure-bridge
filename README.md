@@ -35,9 +35,11 @@ usage of the tools and scripts included in this code base for development.
 ## Pre-Requisites / Setup
 
 To use and develop with the EIS Azure Bridge there are a few steps which must
-be taken to configure your environment. Primarily, you need to configure your
-Azure Cloud account to have the proper instansiated services and you need to
-setup your development system.
+be taken to configure your environment. The setup must be done to configure
+your Azure Cloud account, your development system, and also the node which
+you are going to deploy the EIS Azure Bridge on.
+
+The following sections cover the setup for these three environments.
 
 > **NOTE:** When you deploy with Azure IoT Hub you will also need to configure
 > the Azure IoT Edge Runtime and EIS on your target device.
@@ -48,8 +50,12 @@ Prior to using the EIS Azure Bridge there are a few cloud services in Azure
 which must be initialized.
 
 Primarily, you need an Azure Containter Registry instance, an Azure IoT Hub,
-as well as an Azure IoT Device. To create these instances, follow the guides
-provided by Microsoft below:
+as well as an Azure IoT Device. Additionally, if you wish to use the sample ONNX
+UDF in EIS to download a ML/DL model from AzureML, then you must follow a few
+steps to get this configured as well. For these steps, see the, "Setting up AzureML",
+section below.
+
+To create these instances, follow the guides provided by Microsoft below:
 
 > **NOTE:** In the quickstart guides below it is recommended that you create an
 > Azure Resource Group. This is a good practice as it makes for easy clean up
@@ -58,10 +64,6 @@ provided by Microsoft below:
 * [Create Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)
 * [Create Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-create-through-portal)
 * [Register an Azure IoT Device](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device)
-* [Create AzureML Workspace](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-manage-workspace)
-* [Push Model to AzureML Workspace](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-deploy-existing-model)
-    > **NOTE:** If you already have an existing model in AzureML, do not worry about doing this step
-    > If you need a model to push, a good resource can be found [here](https://notebooks.azure.com/azureml/projects/azureml-getting-started/html/how-to-use-azureml/deployment/onnx/onnx-modelzoo-aml-deploy-resnet50.ipynb)
 
 > **IMPORTANT:**
 > In the tutorials above you will receive credentials/connection strings for your
@@ -74,13 +76,19 @@ via Visual Studio Code, the Azure Portal, or the Azure CLI. If you wish to use
 the Azure CLI, it is recommended that you follow the Development System Setup
 instructions below.
 
-#### Notes on Setting up an AzureML Workspace
+#### Setting up AzureML
 
-For the AzureML Workspace, you also need to setup the workspace to be able
-authenticate connections using Service Principal Authentication. To set this
-up, follow the instructions provided [here](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-setup-authentication#set-up-service-principal-authentication).
+To use the sample EIS ONNX UDF, you must do the following:
 
-In this setup process, you will execute a command to similar to the following:
+1. Create an AzureML Workspace (see [these](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-manage-workspace)
+    instructions provided by Microsoft)
+2. Configure Service Principle Authentication on your AzureML workspace by following
+    instructions provided [here](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-setup-authentication#set-up-service-principal-authentication)
+
+**IMPORTANT**
+
+During the setup process provided for step 2 above, you will run a command similar
+to the following:
 
 ```sh
 $ az ad sp create-for-rbac --sdk-auth --name ml-auth
@@ -90,6 +98,16 @@ After executing this command you will see a JSON blob printed to your console
 window. Save the `clientId`, `clientSecret`, `subscriptionId`, and `tenantId`
 for configuring the sample ONNX EIS UDF later.
 
+##### Pushing a Model to AzureML
+
+If you already have an ONNX model you wish to push to your AzureML Workspace, then
+follow [these instructions](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-deploy-existing-model)
+to push your model.
+
+If you do not have a model, and want an easy model to use, follow
+[this](https://notebooks.azure.com/azureml/projects/azureml-getting-started/html/how-to-use-azureml/deployment/onnx/onnx-modelzoo-aml-deploy-resnet50.ipynb)
+notebook provided my Microsoft to train a simple model to push to your AzureML Workspace.
+
 ### <a name="dev-sys-setup"></a>Development System Setup
 
 The development system will be used for the following actions:
@@ -98,13 +116,15 @@ The development system will be used for the following actions:
 * Creating your Azure IoT Hub deployment manifest
 * Deploying your manifest to a single node
 
-The instructions that follow should be followed in order to run the EIS Azure
-Bridge locally (in the simulator described later) or on a single-node deployment.
+For testing purposes, your development system can serve to do the actions detailed
+above, as well as being the device you use for your single-node deployment. This
+should not be done in a production environment, but it can be helpful when
+familiarizing yourself with the EIS Azure Bridge.
 
 First, setup your system for building EIS. To do this, follow the instructions
 detailed in the main EIS README and the EIS User Guide. At the end, you should
-have Docker, Docker Compose, and other EIS Python dependencies for the EIS Builder
-script in the `../build/` directory.
+have installed Docker, Docker Compose, and other EIS Python dependencies for
+the EIS Builder script in the `../build/` directory.
 
 Once this is completed, install the required components to user the Azure CLI
 and development tools. The script `./tools/install-dev-tools.sh` automates this
@@ -160,6 +180,10 @@ At the end of doing this, you should have the `ia_etcd` container running on
 your node and you should have the Azure IoT Edge Runtime and its associated
 containers running as well.
 
+As noted before, you can use your development system for doing a single-node
+deployment. However, this should not be done in production environments, and
+just in a testing/development environment.
+
 ## <a name="eis-build-push"></a>Build and Push EIS Containers
 
 > **NOTE:** By following the steps below, the EIS Azure Bridge and Simple
@@ -168,8 +192,11 @@ containers running as well.
 After setting up your development system, build and push the EIS containers
 to your Azure Contianer Registry instance.
 
-To do this go to the `../build/` directory in the EIS source code, and execute
-the following commands:
+To do this go to the `../build/` directory in the EIS source code, modify the
+`DOCKER_REGISTRY` variable in the `../build/.env` file to point to your Azure
+Container Registry.
+
+Next, execute the following commands:
 
 ```sh
 $ python3 eis_builder.py
@@ -179,148 +206,19 @@ $ docker-compose push
 
 For more detailed instructions on this process, see the EIS README and User Guide.
 
-## Running Locally on Development System
-
-To run the EIS Azure Bridge in the Azure IoT Edge Runtime simulator provided
-through the `iotedgehubdev` tool, follow the instructions below:
-
-> **NOTE:** It is assumed that you have ran the `./tools/install-dev-tools.sh`
-> script prior to following these steps.
-
-1. Create your EIS `docker-compose.yml` and initial `eis_config.json`.
-
-    Execute the `eis_builder.py` script from the `../build` directory in the EIS
-    source code. This will create your `docker-compose.yml` file.
-
-    > **NOTE:** If you already built and pushed your EIS containers to your
-    > Azure Container Registry, then this step is not necessary.
-
-2. Edit the `../build/provision/config/eis_config.json` with the initial configuration
-    you wish to run EIS with. If you are using the sample ONNX EIS UDF, make sure
-    to modify your Video Ingestion or Video Analytics container config to use the UDF.
-
-    To do this, open the `../build/provision/config/eis_config.json` file. Under
-    the `udfs` key, remove the current contents of the list and add something like
-    the following:
-
-    ```json
-    {
-        "name": "sample_onnx.onnx_udf",
-        "type": "python",
-        "aml_ws": "<AzureML Workspace Name>",
-        "aml_subscription_id": "<Subscription ID for authenticating the connection to the AzureML Workspace>",
-        "model_name": "<Model name in AzureML, or the path to the model to load>"
-    }
-    ```
-If you want to use a model file that is local, then the `aml_ws` and `aml_subscription_id`
-    values can be left blank. However, be sure that you've added the model to
-    the VI container. (NOTE: This may require you to rebuild and push the EIS
-    containers)
-
-3. Provision EIS on your development system
-    > **NOTE:** Execute the following command from the
-    > `<EIS root source code>/build/provision/`directory.
-
-    Before running the following command, make sure to modify the `build/.env`
-    file according to the EIS configuration you want to use.
-
-    Also, set the `ETCD_HOST` and `HOST_IP` variables in the `build/.env` file in EIS
-    to the IP address of your development system. Additionally, be sure to set the
-    `DOCKER_REGISTRY` to the URL of your ACR instance.
-
-    ```sh
-    $ sudo -H -E ./provision_eis.sh ../docker-compose.yml
-    ```
-
-    At this point, you don't need to worry about modifying the EIS `docker-compose.yml`
-    since the EIS Azure Bridge will replace all of the configuration in ETCD
-    when it starts up.
-
-4. In the `EISAzureBridge` directory in EIS, modify the `.env` file. This should
-    include populating the `AZ_CONTAINER_REGISTRY_USERNAME`, and `AZ_CONTAINER_REGISTRY_PASSWORD`
-    variables. All of these values should have been obtained when creating your Azure Container
-    Registry.
-
-5. Populate the AzureML variables in the `.env` file if you are downloading a
-    model from an AzureML workspace. This should include populating the `AML_TENANT_ID`,
-    `AML_PRINCIPAL_ID`, and `AML_PRINCIPAL_PASS` environmental variables. The values of these
-    will be the values saved when you created the Service Principal Authentication for your AzureML
-    workspace in the [Azure Cloud Setup](#az-cloud-setup) section. The table below
-    provides the necessary mappings.
-
-    | Environmental Variable |  Mapped Value  |
-    | :--------------------: | :------------: |
-    | `AML_TENANT_ID`        | `tenantId`     |
-    | `AML_PRINCIPAL_ID`     | `clientId`     |
-    | `AML_PRINCIPAL_PASS`   | `clientSecret` |
-
-
-6. **(OPTIONAL)** If you wish to store the images from the EIS video ingestion
-    service in a local Azure Blob Storage instance, then you must fill in the
-    `AZ_BLOB_STORAGE_ACCOUNT_NAME` variable in the `.env` file.
-
-    The account name must be a lowercase string with no spaces or odd characters.
-    This script will populate the values in the `.env` file including the account
-    key.
-
-7. Generate an Azure IoT Hub deployment manifest
-
-    ```sh
-    $ ./tools/generate-deployment-manifest.sh example EISAzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
-    ```
-
-    > **NOTE:** If you are using Azure Blob Storage, include `AzureBlobStorageonIoTEdge`
-    > in the argument list above.
-
-    > **NOTE:** When you run the command above, it will pull some values from your
-    > EIS `build/.env` file. Make sure to see the EIS README for what to
-    > set in that file.
-
-    The above command will generate two files: `./example.template.json` and
-    `config/example.amd64.json`. The first is a deployment template, and the second
-    is the fully populated/generated configuration for Azure IoT Hub. In executing
-    the script above, you should have a manifest which includes the EIS Azure Bridge,
-    Simple Subscriber, as well as the EIS video ingestion service.
-
-    If you have chosen to use the Azure Blob Storage service, then you will
-    be prompted to provide an Azure Blob Storage account name. This is not
-    tied to a cloud instance, but will be how the EIS Azure Bridge logs into
-    the local instance of Azure Blob Storage deployed on your edge device.
-
-7. Setup the `iotedgehubdev` simulator with the following command:
-
-    ```sh
-    $ sudo iotedgehubdev setup -c "<edge-device-connection-string>"
-    ```
-
-    The Edge device connection string should have been obtained when you created the device in your Azure IoT Hub.
-
-    > **NOTE:** This setup is only required the first time you run the EIS Azure
-    > Bridge in a simulator.
-
-8. Run the simulator using the command below:
-
-    ```sh
-    $ ./tools/run-simulator.sh ./example.template.json
-    ```
-
-After executing the steps above, run the following command to see the output
-from the Simple Subscriber:
-
-```sh
-$ docker logs -f SimpleSubscriber
-```
-
-This service should be outputting classification meta-data from EIS, which it
-received over the Azure IoT Edge Runtime.
-
-## Single-Node Azure IoT Edge Deployment
+## <a name="single-node-dep"></a>Single-Node Azure IoT Edge Deployment
 
 > **NOTE:** Outside of the Azure ecosystem, EIS can be deployed and communicate
 > across nodes. In the Azure IoT Edge ecosystem this is not possible with EIS.
 > All EIS services must be running on the same edge node. However, you can
 > deploy EIS on multiple nodes, but intercommunication between the nodes will
 > not work.
+
+> **IMPORTANT NOTE:**
+> If you are using TCP communication between VI or VA and the EIS Azure Bridge,
+> modify the `Clients` environmental variable in your `docker-compose.yml` file use
+> while provisioning EIS to include `EISAzureBridge` so that the connection can be
+> encrypted/authenticated.
 
 In the Azure IoT ecosystem you can deploy to single-nodes and you can do bulk
 deployments. This section will cover how to deploy the EIS Azure Bridge and
@@ -332,119 +230,188 @@ Note that this section will give a high-level overview of how to deploy the
 modules with the Azure CLI. For more information on developing and deploying
 Azure modules, see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/tutorial-develop-for-linux).
 
-In order to deploy to a single Azure IoT Edge node you must have already
-configured your Azure cloud instance (see instructions in the [Azure Cloud Setup](#az-cloud-setup)
-section). Additionally, you need to have already built and pushed the EIS services
-(follow the instructions in the [Build and Push EIS Containers](#eis-build-push) section).
+The deloyment of the Azure IoT Edge and the EIS modules can be broken down into
+the following steps:
 
-Once you have completed these two steps you must then install the Azure IoT
-Edge Runtime on your target deployment system. To do that, follow the instructions
-provided by Microsoft in [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux).
+1. Provisioning
+2. Configuring EIS
+3. Configuring Azure IoT Deployment Manifest
+4. Deployment
+
+Prior to deploying a single Azure IoT Edge node you must have already
+configured your Azure cloud instance (see instructions in the [Azure Cloud Setup](#az-cloud-setup)
+section). Additionally, you need to have already built and pushed the EIS services to your
+Azure Container Registry (follow the instructions in the [Build and Push EIS Containers](#eis-build-push)
+section).
+
+Provided you have met these two prerequisites, follow the steps below to do a
+single node deployment with the EIS Azure Bridge on the Azure IoT Edge Runtime.
+
+### Step 1 - Provisioning
+
+The provisioning must take place on the node you wish to deploy your Azure IoT
+Edge modules onto.
+
+First, you must then install the Azure IoT Edge Runtime on your target deployment
+system. To do that, follow the instructions provided by Microsoft in
+[this guide](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux).
 
 Next, you must provision EIS on your target deployment system. Follow the instructions
 provided in the EIS READMEs/User Guide for completing this process.
 
-> **IMPORTANT NOTE:**
-> If you are using TCP communication between VI or VA and the EIS Azure Bridge,
-> modify the `Clients` environmental variable in your `docker-compose.yml` file use
-> while provisioning EIS to include `EISAzureBridge` so that the connection can be
-> encrypted/authenticated.
+> **NOTE:** When provisining EIS, be sure to note down which directory you
+> generate your certificates into, this will be important later. Unless, you are
+> running EIS in dev mode, in that case you will have no certificates generated.
 
-Once you have your target edge system setup and provisioned, you need to
-create your Azure IoT Hub deployment manifest and set the modules for the
-Azure IoT Edge Device. The EIS Azure Bridge provides some convenience scripts
-to ease this process. To complete this steps, follow the instructions below.
+When you have completed these steps, you should have the Azure IoT Edge Runtime
+installed (which includes Docker), and you should have the `ia_etcd` EIS container
+running on your system.
+
+### Step 2 - Configuring EIS
+
+This step should be done from your development system, and not the edge node you
+are deploying EIS onto.
+
+To configure EIS, modify the `build/provision/config/eis_config.json` file. This
+should have been generated when the `build/eis_builder.py` script was executed
+when building/pushing the EIS containers to your ACR instance. If it does not
+exist, run this script based on the instructions provided in the EIS README.
+
+Next, configure the `build/.env` file. You must make sure to modify the following
+values in the `.env` file:
+
+* `DOCKER_REGISTRY` - This should have been set when building/pushing the EIS
+    containers to your ACR instance. Make sure it is set to the URL for your
+    ACR instance.
+* `HOST_IP` - This must be the IP address of the edge node you are deploying
+    your containers to
+* `ETCD_HOST` - This should be set to the same value as your `HOST_IP` address
+* `DEV_MODE` - Set this to the same value you used when provisioning your edge node
+    in the previous step
+
+Next, in the `EISAzureBridge/` source directory, modify the `.env` file. Make
+sure to set the following values:
+
+* `EIS_CERTIFICATES`              - The directory with the EIS certificates on your edge system
+* `AZ_CONTAINER_REGISTY_USERNAME` - User name for the container registry login (obtained during creation)
+* `AZ_CONTAINER_REGISTY_PASSWORD` - Password for the container registry login (obtained during creation)
+    * **IMPORTANT NOTE:** Make sure to surround the password in single quotes, i.e. `'`, because bash
+        may escape certain characters when the file is read, leading to incorrect configuration
+* `AZ_BLOB_STORAGE_ACCOUNT_NAME`  - **(OPTIONAL)** User name for the local Azure Blob Storage instance
+
+**IMPORTANT NOTE:**
+
+If you wish to use the sample EIS ONNX UDF, now is the time to configure the UDF
+to run. See the [Sample EIS ONNX UDF](#sample-eis-onnx-udf) configuration section
+below for how to configure the UDF.
+
+### Step 3 - Configuring Azure IoT Deployment Manifest
+
+Once you have your target edge system provisioned and EIS configured, you need to
+create your Azure IoT Hub deployment manifest. The EIS Azure Bridge provides some
+convenience scripts to ease this process.
 
 > **NOTE:** These steps should be done from your development system setup in
-> the [Development System Setup](#dev-sys-setup) section.
+> the [Development System Setup](#dev-sys-setup) section. Note, that for testing
+> and development purposes, these could be the same system.
 
+To generate your deployment manifest template, execute the following command:
 
-1. From the `build` directory in the EIS source code, execute the `eis_builder.py`
-    script to generate your initial EIS configuration. Modify the configuration
-    file at `build/provision/config/eis_config.json` according to your desired
-    EIS configuration.
+```sh
+$ ./tools/generate-deployment-manifest.sh example EISAzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
+```
 
-    If you are using the sample ONNX EIS UDF, make sure to set the following
-    values in the UDF configuration section for either VI or VA depending on
-    how you are deploying EIS:
+> **NOTE:** If you are using Azure Blob Storage, include `AzureBlobStorageonIoTEdge`
+> in the argument list above.
 
-    |           Key         |                                      Value                                |
-    | --------------------- | ------------------------------------------------------------------------- |
-    | `aml_ws`              | AzureML workspace name                                                    |
-    | `aml_subscription_id` | `subscriptionId` saved from creating the Service Principal Authentication |
-    | `model_name`          | Name of the model in your AzureML workspace                               |
+> **NOTE:** When you run the command above, it will pull some values from your
+> EIS `build/.env` file. If the `build/.env` file is configured incorrectly,
+> you may run into issues.
 
-2. In the `EISAzureBridge` directory in the EIS source code, configure the `.env`
-    file; this is a separate `.env` than the one in `build/.env`. You must set
-    the following values in the `.env` file
+The above command will generate two files: `./example.template.json` and
+`config/example.amd64.json`. The first is a deployment template, and the second
+is the fully populated/generated configuration for Azure IoT Hub. In executing
+the script above, you should have a manifest which includes the EIS Azure Bridge,
+Simple Subscriber, as well as the EIS video ingestion service.
 
-    |             Setting             |                                  Description                                 |
-    | :-----------------------------: | ---------------------------------------------------------------------------- |
-    | `EIS_CERTIFICATES`              | The directory with the EIS certificates on your edge system                  |
-    | `AZ_CONTAINER_REGISTY_USERNAME` | User name for the container registry login (obtained during creation)        |
-    | `AZ_CONTAINER_REGISTY_PASSWORD` | Password for the container registry login (obtained during creation)         |
-    | `AZ_BLOB_STORAGE_ACCOUNT_NAME`  | **(OPTIONAL)** User name for the local Azure Blob Storage instance           |
-    | `AML_TENANT_ID`                 | **(OPTIONAL)** The `tenantId` saved in the Azure Cloud setup                 |
-    | `AML_PRINCIPAL_ID`              | **(OPTIONAL)** The `clientId` saved in the Azure Cloud setup                 |
-    | `AML_PRINCIPAL_PASS`            | **(OPTIONAL)** The `clientSecret` saved in the Azure Cloud setup             |
+The list of services given to the bash script can be changed if you wish to
+run different services.
 
-    > **NOTE:** The `AML_*` variables are only necessary if you want to use the
-    > sample EIS ONNX UDF.
+You may want/need to modify your `./example.template.json` file after running
+this command. This could be because you wish to change the topics that VI/VA use
+or because you want to configure the EIS Azure Bridge in some different way. If you
+modify this file, you must regenerate the `./config/example.amd64.json` file.
+To do this, execute the following command:
 
+```sh
+$ iotedgedev genconfig -f example.template.json
+```
 
-    The `.env` file in this folder will pull from your `build/.env`
-    file when generating your deployment manifest later in these steps. Make sure
-    that you have configured that file according to the EIS configuration you
-    have on your target system.
+If you wish to modify your `eis_config.json` file after generating your template,
+you can re-add this to the EIS Azure Bridge digital twin by running the following
+command:
 
-    Especially, make sure to set the `ETCD_HOST` and `HOST_IP` to the IP address of your
-    target machine. This is a current limitation of the EIS Azure Bridge.
+```sh
+$ python3 serialize_eis_config.py example.template.json ../build/provision/config/eis_config.json
+```
 
-    You must also set the `DOCKER_REGISTRY` to the URL for your Azure Container
-    Registry.
+### Step 4 - Deployment
 
-    > **NOTE:** If you have chosen to use the Azure Blob Storage service, then you will
-    > be prompted to provide an Azure Blob Storage account name. This is not
-    > tied to a cloud instance, but will be how the EIS Azure Bridge logs into
-    > the local instance of Azure Blob Storage deployed on your edge device.
+Now that you have generated your deployment manifest, deploy the modules to your
+Azure IoT Edge Device using the Azure CLI command shown below:
 
-    > **NOTE:** There are other values in this `.env` file, they are mostly common
-    > EIS environment variables. See the EIS documentation for more details.
-
-3. Generate your Azure IoT Hub deployment manifest
-
-    ```sh
-    $ ./tools/generate-deployment-manifest.sh example EISAzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
-    ```
-
-    > **NOTE:** If you are using Azure Blob Storage, include `AzureBlobStorageonIoTEdge`
-    > in the argument list above.
-
-    > **NOTE:** When you run the command above, it will pull some values from your
-    > EIS `build/.env` file. Make sure to see the EIS README for what to
-    > set in that file.
-
-    The above command will generate two files: `./example.template.json` and
-    `config/example.amd64.json`. The first is a deployment template, and the second
-    is the fully populated/generated configuration for Azure IoT Hub. In executing
-    the script above, you should have a manifest which includes the EIS Azure Bridge,
-    Simple Subscriber, as well as the EIS video ingestion service.
-
-4. Set the modules on your Azure IoT Edge Device using the Azure CLI command
-    shown below:
-
-    ```sh
-    $ az iot edge set-modules -n <azure-iot-hub-name> -d <azure-iot-edge-device-name> -k config/<deployment-manifest>
-    ```
+```sh
+$ az iot edge set-modules -n <azure-iot-hub-name> -d <azure-iot-edge-device-name> -k config/<deployment-manifest>
+```
 
 Provided all of the setups above ran correctly, your edge node should now be running
-your Azure IoT Edge modules, the EIS Azure Bridge, and the EIS Video Ingestion
-service.
+your Azure IoT Edge modules, the EIS Azure Bridge, and the EIS services you
+selected.
 
-**IMPORTANT:**
+It is possible that for the EIS Azure Bridge (and any Python Azure IoT Edge modules)
+you will see that the service crashes the first couple of times it attempts to come
+up on your edge system with an exception similar to the following:
 
-When deployment with Azure IoT Edge Runtime there are many security considerations
-to be taken into account. Please see the following Microsoft resources regarding
+```
+Traceback (most recent call last):
+    File "/usr/local/lib/python3.7/site-packages/azure/iot/device/common/mqtt_transport.py", line 340, in connect
+        host=self._hostname, port=8883, keepalive=DEFAULT_KEEPALIVE
+    File "/usr/local/lib/python3.7/site-packages/paho/mqtt/client.py", line 937, in connect
+        return self.reconnect()
+    File "/usr/local/lib/python3.7/site-packages/paho/mqtt/client.py", line 1071, in reconnect
+        sock = self._create_socket_connection()
+    File "/usr/local/lib/python3.7/site-packages/paho/mqtt/client.py", line 3522, in _create_socket_connection
+        return socket.create_connection(addr, source_address=source, timeout=self._keepalive)
+    File "/usr/local/lib/python3.7/socket.py", line 728, in create_connection
+        raise err
+    File "/usr/local/lib/python3.7/socket.py", line 716, in create_connection
+        sock.connect(sa)
+    ConnectionRefusedError: [Errno 111] Connection refused
+```
+
+This occurs because the container is starting before the `edgeHub` container for
+the Azure IoT Edge Runtime has come up, and so it it unable to connect. Once the
+`edgeHub` container is fully launched, then this should go away and the containers
+should launch correctly.
+
+If everything is running smoothly, you should see messages being printed in the
+Simple Subscriber service using the following command:
+
+```sh
+$ docker logs -f SimpleSubscriber
+```
+
+### Helpful Debugging Commands
+
+If you are encountering issues, the following commands can help with debugging:
+
+* **Azure IoT Edge Runtime Daemon Logs:** `journalctl -u iotedge -f`
+* **Container Logs:** `docker logs -f <CONTAINER-NAME>`
+
+### Final Notes
+
+When deploying with Azure IoT Edge Runtime there are many security considerations
+to be taken into account. Please consult the following Microsoft resources regarding
 the security in your deployments.
 
 * [Securing Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/security)
@@ -554,6 +521,110 @@ If this (key, value) pair is not specified, then the images will not be saved.
 > on the data structure of Azure Blob Storage, see
 > [this link](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blob-storage-resources)
 
+### Sample EIS ONNX UDF
+
+EIS provides a sample UDF which utilizes the ONNX RT to execute your machine learning /
+deep learning model. It also supports connecting to an AzureML Workspace to download
+the model and then run it. The source code for this UDF is in `common/video/udfs/python/sample_onnx/`.
+
+To use this UDF with EIS, you need to modify your `build/provision/config/eis_config.json`
+configuration file to run the UDF in either your Video Ingesiton or Video Analytics
+instance. Then, you need to modify the environmental variables in the `EISAzureBridge/.env`
+file to provide the connection information to enable the UDF to download your
+model.
+
+The sample ONNX UDF requires that the following configuration values be set for
+the UDF:
+
+|           Key         |                                      Value                                |
+| --------------------- | ------------------------------------------------------------------------- |
+| `aml_ws`              | AzureML workspace name                                                    |
+| `aml_subscription_id` | `subscriptionId` saved from creating the Service Principal Authentication |
+| `model_name`          | Name of the model in your AzureML workspace                               |
+| `download_mode`       | Whether or not to attempt to download the model                           |
+
+> **NOTE:** If `download_mode` is `false`, then it expects the `model_name` to
+> where the `*.onnx` model file is in the container.
+
+This should be added into the `udfs` list for your Video Ingestion or Video Analytics
+instance you wish to have run the UDF. The configuration should look similar to
+the following:
+
+```javascript
+{
+    // ... omited rest of EIS configuration ...
+
+    "udfs": [
+        {
+            "name": "sample_onnx.onnx_udf",
+            "type": "python",
+            "aml_ws": "example-azureml-workspace",
+            "aml_subscription_id": "subscription-id",
+            "model_name": "example-model-name",
+            "download_model": true
+        }
+    ]
+
+    // ... omited rest of EIS configuration ...
+}
+```
+
+The following environmental variables must be set in the `EISAzureBridge/.env` file
+in order have the sample ONNX UDF download your model from an AzureML Workspace:
+
+|             Setting             |                      Description                  |
+| :-----------------------------: | ------------------------------------------------- |
+| `AML_TENANT_ID`                 | The `tenantId` saved in the Azure Cloud setup     |
+| `AML_PRINCIPAL_ID`              | The `clientId` saved in the Azure Cloud setup     |
+| `AML_PRINCIPAL_PASS`            | The `clientSecret` saved in the Azure Cloud setup |
+
+It is important to note that for the `AML_PRINCIPAL_PASS` you must wrap the password
+in single quotes, i.e. `'`. Otherwise, there may be characters that get escaped in
+a weird way when the values are populated into your deployment manifest leading
+to configuration errors.
+
+The `tenantId`, `clientId`, `clientSecret`, and `subscriptionId` should all have
+been obtained when following the instructions in the [Setting up AzureML](#setting-up-azureml)
+section.
+
+**IMPORTANT NOTE:**
+
+If your system is behind a proxy, you may run into an issue where the download of
+your ONNX model from AzureML times out. This may happen even if the proxy is set
+globally for Docker on your system. To fix this, update your deployment manifest
+template so that the Video Ingestion and/or Video Analytics containers have
+the `http_proxy` and `https_proxy` values set. The manifest should look something
+like the following:
+
+```javascript
+{
+    // ... omitted ...
+
+    "modules": {
+        "ia_video_ingestion": {
+            // ... omitted ...
+
+            "settings": {
+                "createOptions": {
+                    "Env": [
+                        // ... omitted ...
+
+                        "http_proxy=<YOUR PROXY>",
+                        "https_proxy=<YOUR PROXY>",
+
+                        // ... omitted ...
+                    ]
+                }
+            }
+
+            // ... omitted ...
+        }
+    }
+
+    // ... omitted ...
+}
+```
+
 ### Simple Subscriber
 
 The Simple Subscriber module provided with the EIS Azure Bridge is a very simple
@@ -612,6 +683,49 @@ as well.
 
 For more information on creating / modifying Azure IoT Hub deployment manifests,
 see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/module-composition).
+
+## Azure IoT Edge Simulator
+
+Microsoft provides a simluator for the Azure IoT Edge Runtime. During the
+setup of your development system (covered in the [Development System Setup](#dev-sys-setup)
+section), the simulator is automatically installed on your system.
+
+Additionally, the EIS Azure Bridge provides the `./tools/run-simulator.sh` script
+to easily use the simulator with the bridge.
+
+To do this, follow steps 1 - 3 in the [Single-Node Azure IoT Edge Deployment](#single-node-dep)
+section above. Then, instead of step 4, run the following command to setup
+the simulator:
+
+```sh
+$ sudo iotedgehubdev setup -c "<edge-device-connection-string>"
+```
+
+Next, start the simulator with your deployment manifest template using the
+following command:
+
+```sh
+$ ./tools/run-simulator.sh ./example.template.json
+```
+
+If everything is running smoothly, you should see messages being printed in the
+Simple Subscriber service using the following command:
+
+```sh
+$ docker logs -f SimpleSubscriber
+```
+
+**IMPORTANT NOTE:**
+
+You *cannot* run both the Azure IoT Edge Runtime and the simulator simultaneously
+on the same system. If you are using the same system, first stop the Azure IoT Edge
+Runtime daemon with the following command:
+
+```sh
+$ sudo systemctl stop iotedge
+```
+
+Then, run the simulator as specified above.
 
 ## Supported EIS Services
 
