@@ -8,7 +8,6 @@
             "image": "${DOCKER_REGISTRY}ia_video_ingestion:$EIS_VERSION",
             "createOptions": {
                 "Hostname": "ia_video_ingestion",
-                "User": "$EIS_UID",
                 "Env": [
                     "AppName=VideoIngestion",
                     "DEV_MODE=$DEV_MODE",

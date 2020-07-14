@@ -50,3 +50,5 @@ services:
             args:
                 EIS_VERSION: ${EIS_VERSION}
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+                EIS_UID: ${EIS_UID}
+                EIS_USER_NAME: ${EIS_USER_NAME}

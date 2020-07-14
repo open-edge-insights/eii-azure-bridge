@@ -19,8 +19,12 @@
 # SOFTWARE.
 
 FROM python:3.7-slim
+ARG EIS_UID
+ARG EIS_USER_NAME
 
 WORKDIR /app
+
+RUN useradd -r -u ${EIS_UID} ${EIS_USER_NAME}
 
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
