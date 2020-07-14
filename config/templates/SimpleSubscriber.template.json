@@ -5,7 +5,13 @@
         "status": "running",
         "restartPolicy": "always",
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_azure_simple_subscriber:${EIS_VERSION}"
+            "image": "${DOCKER_REGISTRY}ia_azure_simple_subscriber:${EIS_VERSION}",
+            "createOptions": {
+                "User": "${EIS_UID}",
+                "HostConfig": {
+                    "ReadonlyRootfs": true
+                }
+            }
         }
     },
     "routes": {

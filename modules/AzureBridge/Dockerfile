@@ -44,7 +44,7 @@ RUN pip3 install -r requirements.txt
 
 ARG EIS_UID
 ARG EIS_USER_NAME
-RUN useradd -r -u ${EIS_UID} -G video ${EIS_USER_NAME}
+RUN useradd -r -u ${EIS_UID} ${EIS_USER_NAME}
 
 FROM ${DOCKER_REGISTRY}ia_common:$EIS_VERSION as common
 

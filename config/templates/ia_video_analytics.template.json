@@ -8,7 +8,6 @@
             "image": "${DOCKER_REGISTRY}ia_video_analytics:$EIS_VERSION",
             "createOptions": {
                 "Hostname": "ia_video_analytics",
-                "User": "$EIS_UID",
                 "Env": [
                     "AppName=VideoAnalytics",
                     "DEV_MODE=$DEV_MODE",

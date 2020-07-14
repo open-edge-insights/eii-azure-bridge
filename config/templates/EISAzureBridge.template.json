@@ -8,6 +8,7 @@
         "settings": {
             "image": "${DOCKER_REGISTRY}ia_eis_azure_bridge:${EIS_VERSION}",
             "createOptions": {
+                "User": "${EIS_UID}",
                 "Env": [
                     "AppName=EISAzureBridge",
                     "DEV_MODE=$DEV_MODE",
@@ -22,6 +23,7 @@
                     "/EIS/sockets": {}
                 },
                 "HostConfig": {
+                    "ReadonlyRootfs": true,
                     "Binds": [
                         "$EIS_INSTALL_PATH/sockets:/EIS/sockets:rw"
                     ],
