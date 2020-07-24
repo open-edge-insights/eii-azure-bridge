@@ -37,6 +37,7 @@ services:
                 EIS_UID: ${EIS_UID}
                 EIS_USER_NAME: ${EIS_USER_NAME}
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        ipc: "none"
         environment:
             AppName: "EISAzureBridge"
             CertType: "zmq"
@@ -52,3 +53,4 @@ services:
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}
                 EIS_UID: ${EIS_UID}
                 EIS_USER_NAME: ${EIS_USER_NAME}
+        ipc: "none"
