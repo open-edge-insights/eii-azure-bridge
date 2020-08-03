@@ -393,6 +393,25 @@ command:
 $ python3 serialize_eis_config.py example.template.json ../build/provision/config/eis_config.json
 ```
 
+**IMPORTANT NOTE:**
+
+If you wish to have the EISAzureBridge subscribe and bridge data over an IPC
+socket coming from either Video Ingestion or Video Analytics, then you must
+change the user which the container operates under. By default, the EISAzureBridge
+container is configured to run as the `eisuser` created during the installation of
+EIS on your edge system. Both Video Ingestion and Video Analytics operate as root
+in order to access various accelerators on your system. This results in the
+IPC sockets for the communication with these modules being created as root. To
+have the EISAzureBridge subscribe it must also run as root. To change this, do
+the following steps:
+
+1. Open your deployment manifest template
+2. Under the following JSON key path: `modulesContent/modules/EISAzureBridge/settings/createOptions`
+    delete the `User` key
+
+This will cause the container to be launched as `root` by default allowing you to
+subscribe to IPC sockets created as root.
+
 #### Expected Result
 
 If all of the commands above ran correctly, then you will have a valid `*.template.json`
