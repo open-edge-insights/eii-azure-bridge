@@ -18,8 +18,8 @@
                     "CertType=zmq",
                     "ZMQ_RECV_HWM=1000",
                     "PubTopics=camera1_stream",
-                    "camera1_stream_cfg=zmq_ipc,/EIS/sockets/",
                     "Server=zmq_tcp,127.0.0.1:65014",
+                    "camera1_stream_cfg=zmq_ipc,${SOCKET_DIR}",
                     "AML_TENANT_ID=$AML_TENANT_ID",
                     "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
                     "AML_PRINCIPAL_PASS=$AML_PRINCIPAL_PASS"
