@@ -7,6 +7,7 @@
         "settings": {
             "image": "mcr.microsoft.com/azure-blob-storage",
             "createOptions": {
+                "User": "${EIS_UID}",
                 "Env": [
                     "LOCAL_STORAGE_ACCOUNT_NAME=$AZ_BLOB_STORAGE_ACCOUNT_NAME",
                     "LOCAL_STORAGE_ACCOUNT_KEY=$AZ_BLOB_STORAGE_ACCOUNT_KEY"
