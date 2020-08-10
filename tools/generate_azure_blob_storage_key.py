@@ -41,8 +41,8 @@ with open('.env', 'r') as f:
 
 # Find and replace the current value of the AZ_BLOB_STORAGE_ACCOUNT_KEY
 new_contents = re.sub(
-        r'AZ_BLOB_STORAGE_ACCOUNT_KEY=.+',
-        f'AZ_BLOB_STORAGE_ACCOUNT_KEY={account_key}',
+        r'AZ_BLOB_STORAGE_ACCOUNT_KEY=(.+|)',
+        f'AZ_BLOB_STORAGE_ACCOUNT_KEY=\'{account_key}\'',
         contents, flags=re.M)
 
 # Save the new contents of the .env file

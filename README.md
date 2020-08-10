@@ -751,6 +751,86 @@ deployment manifest.
 
 ### Azure Blob Storage
 
+The EIS Azure Bridge enables to use of the Azure Blob Storage edge IoT service
+from Microsoft. This service can be used to save images from EIS into the blob
+storage.
+
+If you wish to have the Azure Blob Storage service save the images to your
+host filesystem, then you must do the following:
+
+1. Create the directory to save the data on your host filesystem, it is recommended
+    to use the following commands:
+
+    ```sh
+    $ sudo mkdir /opt/intel/eis/data/azure-blob-storage
+    $ sudo chown eisuser:eisuser /opt/intel/eis/data/azure-blob-storage
+    ```
+
+2. Next, modify your deployment manifest to alter the bind location which the
+    Azure Blob Storage service uses. To do this, open your `*.template.json` file.
+    Provided you specified the Azure Blob Storage service, you should see something
+    like the following in your deployment manifest template:
+
+    ```json
+    {
+        "AzureBlobStorageonIoTEdge": {
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "version": "1.0",
+            "settings": {
+                "image": "mcr.microsoft.com/azure-blob-storage",
+                "createOptions": {
+                    "User": "${EIS_UID}",
+                    "Env": [
+                        "LOCAL_STORAGE_ACCOUNT_NAME=$AZ_BLOB_STORAGE_ACCOUNT_NAME",
+                        "LOCAL_STORAGE_ACCOUNT_KEY=$AZ_BLOB_STORAGE_ACCOUNT_KEY"
+                    ],
+                    "HostConfig": {
+                        "Binds": [
+                            "az-blob-storage-volume:/blobroot"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    ```
+
+    Change the `Binds` location to the following:
+
+    ```javascript
+    {
+        "AzureBlobStorageonIoTEdge": {
+            // ... omitted ...
+            "settings": {
+                "createOptions": {
+                    // ... omitted ...
+                    "HostConfig": {
+                        "Binds": [
+                            "/opt/intel/eis/data/azure-blob-storage/:/blobroot"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    ```
+
+    Make sure to run the `iotedgedev geoncfig -f <manifest-template>` command
+    for the changes to be applied to the actual deployment manifest.
+
+    When you run the EIS Azure Bridge where it is configured to save the images into
+    an Azure Blob Storage instance, you should see the images by running the
+    following command:
+
+    ```sh
+    $ sudo ls -l /opt/intel/eis/data/azure_blob_storage/BlockBlob/
+    ```
+
+    In that directory, you will see a folder for each container. Inside that directory
+    will be the individually saved images.
+
 For more information on configuring your Azure Blob Storage instance at the
 edge, see the documentation for the service [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-store-data-blob).
 

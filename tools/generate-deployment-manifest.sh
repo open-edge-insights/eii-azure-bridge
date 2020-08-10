@@ -75,6 +75,10 @@ fi
 
 # Generate an Azure Blob Storage account key if the service has been specified
 if [[ $@ =~ (^| )AzureBlobStorageonIoTEdge($| ) ]] ; then
+    if [ "${AZ_BLOB_STORAGE_ACCOUNT_NAME}" == "" ] ; then
+        log_fatal "AZ_BLOB_STORAGE_ACCOUNT_NAME is empty in .env file"
+    fi
+
     log_info "Generating Azure Blob Storage account key"
     python3 ./tools/generate_azure_blob_storage_key.py
     check_error "Failed to generate Azure Blob Storage account key"
