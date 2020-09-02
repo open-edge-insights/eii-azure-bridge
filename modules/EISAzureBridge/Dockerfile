@@ -36,8 +36,6 @@ RUN apt-get update && \
     dpkg-reconfigure -f noninteractive tzdata
 
 COPY requirements.txt ./
-RUN wget https://bootstrap.pypa.io/get-pip.py && \
-    python3.6 get-pip.py
 
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
