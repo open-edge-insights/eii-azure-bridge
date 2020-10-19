@@ -518,39 +518,41 @@ environment.
 
 The configuration of the EIS Message Bus is done in a method similar to that of
 the EIS services, such as Video Analytics service. To specify the topics which
-the bridge should subscribe to you must set the `SubTopics` environmental variable
-as follows:
+the bridge should subscribe to you must set the `Subscriber` object like the
+one in [modules/EISAzureBridge/config.json](./modules/EISAzureBridge/config.json)
 
-```
-SubTopics=VideoIngestion/camera1_stream,<PUBLISHING-SERVICE>/<TOPIC>,...
-```
-
-In the example above, you can see that `SubTopics` is a list of comma seperated
-values, where each value is the publishing services seperated by a `/` and then
-the topic to subscribe to.
-
-In addition to this environmental variable, for every client/topic combination in
-the list you must specify the configuration for the topic. This is done by
-setting an environmental variable as follows:
-
-```
-<TOPIC>_cfg=zmq_ipc,${SOCKET_DIR}
-```
-
-This means that if your topic is `camera1_stream`, then the environmental variable
-will be set as follows:
-
-```
-camera1_stream_cfg=zmq_ipc,${SOCKET_DIR}
+Eg:
+```javascript
+{
+    "Subscribers": [
+            {
+                "Name": "default",
+                "Type": "zmq_tcp",
+                "EndPoint": "127.0.0.1:65013",
+                "PublisherAppName": "VideoAnalytics",
+                "Topics": [
+                    "camera1_stream_results"
+                ]
+            }
+        ]
+}
 ```
 
-Since the EIS Azure Bridge only supports IPC communication over the EIS Message
-Bus currently, the value of the environmental variable will always be:
-`zmq_ipc,${SOCKET_DIR}` for now.
+If one has above ZMQ TCP configuration, the `Endpoint` in the above config of EISAzureBridge
+has to be overrided with the `SUBSCRIBER_ENDPOINT` (more applicable when we have single `Subscriber`
+object in the `Subscribers` list) or `SUBSCRIBER_default_ENDPOINT` (more applicable when we have multiple
+ `Subscriber` objects in the `Subscribers` array) env value set to `$HOST_IP:port` in the [EISAzureBridge
+ deployment manifest file](./config/templates/EISAzureBridge.template.json) and corresponding
+`PUBLISHER_ENDPOINT` (more applicable when we have single `Publisher` object in the `Publishers` array) or
+`PUBLISHER_default_ENDPOINT` (more applicable when we have multiple `Publisher` objects in the `Publishers`
+array) env value set to `0.0.0.0:port` (this configuration needs to go into either
+[VideoIngestion manifest file](./config/templates/ia_video_ingestion.template.json) or
+[VideoAnalytics manifest file](./config/templates/ia_video_analytics.template.json) based on to which of these
+EIS services the EISAzureBridge subscribes to.
 
-> **NOTE:** In the future, the EIS Azure Bridge will support TCP communication
-> using the ZeroMQ protocol in the EIS Message Bus. This confguration is subject
-> to change when this feature is added.
+**IMPORTANT NOTE:**: If EISAzureBridge is subscribing to publisher over `ZMQ IPC`, then no need to use
+the above overriding ENVs. Please refer to additional configuration that needs to be done if using `ZMQ IPC`
+explained under the `Step 3 - Configuring Azure IoT Deployment Manifest` important notes above.
 
 Below is an example digital twin for the EIS Azure Bridge:
 
@@ -558,11 +560,11 @@ Below is an example digital twin for the EIS Azure Bridge:
 {
     "log_level": "DEBUG",
     "topics": {
-        "camera1_stream": {
-            "az_output_topic": "camera1_stream"
+        "camera1_stream_results": {
+            "az_output_topic": "camera1_stream_results"
         }
     },
-    "eis_config": "{\"/VideoIngestion/config\": {\"encoding\": {\"type\": \"jpeg\", \"level\": 96}, \"ingestor\": {\"type\": \"opencv\", \"pipeline\": \"./test_videos/pcb_d2000.avi\", \"loop_video\": \"true\", \"queue_size\": 10, \"poll_interval\": 0.2}, \"max_jobs\": 20, \"max_workers\": 4, \"udfs\": [{\"name\": \"pcb.pcb_filter\", \"type\": \"python\", \"scale_ratio\": 4, \"training_mode\": \"false\", \"n_total_px\": 300000, \"n_left_px\": 1000, \"n_right_px\": 1000}, {\"name\": \"pcb.pcb_classifier\", \"type\": \"python\", \"ref_img\": \"common/udfs/python/pcb/ref/ref.png\", \"ref_config_roi\": \"common/udfs/python/pcb/ref/roi_2.json\", \"model_xml\": \"common/udfs/python/pcb/ref/model_2.xml\", \"model_bin\": \"common/udfs/python/pcb/ref/model_2.bin\", \"device\": \"CPU\"}]}, \"/GlobalEnv/\": {\"PY_LOG_LEVEL\": \"INFO\", \"GO_LOG_LEVEL\": \"INFO\", \"C_LOG_LEVEL\": \"INFO\", \"GO_VERBOSE\": \"0\", \"ETCD_KEEPER_PORT\": \"7070\"}}"
+    "eis_config": "{\"/EISAzureBridge/config\": {}, \"/EISAzureBridge/interfaces\": {\"Subscribers\": [{\"EndPoint\": \"127.0.0.1:65013\", \"Name\": \"default\", \"PublisherAppName\": \"VideoAnalytics\", \"Topics\": [\"camera1_stream_results\"], \"Type\": \"zmq_tcp\"}]}, \"/EtcdUI/config\": {}, \"/EtcdUI/interfaces\": {}, \"/GlobalEnv/\": {\"C_LOG_LEVEL\": \"DEBUG\", \"ETCD_KEEPER_PORT\": \"7070\", \"GO_LOG_LEVEL\": \"INFO\", \"GO_VERBOSE\": \"0\", \"PY_LOG_LEVEL\": \"DEBUG\"}, \"/VideoAnalytics/config\": {\"encoding\": {\"level\": 95, \"type\": \"jpeg\"}, \"max_jobs\": 20, \"max_workers\": 4, \"queue_size\": 10, \"udfs\": [{\"device\": \"CPU\", \"model_bin\": \"common/udfs/python/pcb/ref/model_2.bin\", \"model_xml\": \"common/udfs/python/pcb/ref/model_2.xml\", \"name\": \"pcb.pcb_classifier\", \"ref_config_roi\": \"common/udfs/python/pcb/ref/roi_2.json\", \"ref_img\": \"common/udfs/python/pcb/ref/ref.png\", \"type\": \"python\"}]}, \"/VideoAnalytics/interfaces\": {\"Publishers\": [{\"AllowedClients\": [\"*\"], \"EndPoint\": \"0.0.0.0:65013\", \"Name\": \"default\", \"Topics\": [\"camera1_stream_results\"], \"Type\": \"zmq_tcp\"}], \"Subscribers\": [{\"EndPoint\": \"/EIS/sockets\", \"Name\": \"default\", \"PublisherAppName\": \"VideoIngestion\", \"Topics\": [\"camera1_stream\"], \"Type\": \"zmq_ipc\", \"zmq_recv_hwm\": 50}]}, \"/VideoIngestion/config\": {\"encoding\": {\"level\": 95, \"type\": \"jpeg\"}, \"ingestor\": {\"loop_video\": true, \"pipeline\": \"./test_videos/pcb_d2000.avi\", \"poll_interval\": 0.2, \"queue_size\": 10, \"type\": \"opencv\"}, \"max_jobs\": 20, \"max_workers\": 4, \"sw_trigger\": {\"init_state\": \"running\"}, \"udfs\": [{\"n_left_px\": 1000, \"n_right_px\": 1000, \"n_total_px\": 300000, \"name\": \"pcb.pcb_filter\", \"scale_ratio\": 4, \"training_mode\": \"false\", \"type\": \"python\"}]}, \"/VideoIngestion/interfaces\": {\"Publishers\": [{\"AllowedClients\": [\"VideoAnalytics\", \"Visualizer\", \"WebVisualizer\", \"TLSRemoteAgent\", \"RestDataExport\"], \"EndPoint\": \"/EIS/sockets\", \"Name\": \"default\", \"Topics\": [\"camera1_stream\"], \"Type\": \"zmq_ipc\"}], \"Servers\": [{\"AllowedClients\": [\"*\"], \"EndPoint\": \"127.0.0.1:66013\", \"Name\": \"default\", \"Type\": \"zmq_tcp\"}]}}"
 }
 ```
 

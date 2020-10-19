@@ -91,63 +91,32 @@ def find_root_changes(orig, new):
     return (changed_keys, removed_keys,)
 
 
-def get_msgbus_config(app_name, config_client, dev_mode):
+def get_msgbus_config(app_name, config_mgr, dev_mode):
     """Helper method to construct the EIS Message Bus configuration dictionary.
 
     :param str app_name: EISAzureBridge app name
-    :param config_client: EIS Config Manager client
+    :param config_mgr: Config Manager Instance
     :param bool dev_mode: Flag for whether or not execution is in dev mode
-    :return: Tuple of (IPC msgbus config, TCP msgbus config)
+    :return: Tuple of (IPC topic->msgbus config dict, TCP topic->msgbus config dict)
     :rtype: tuple
     """
-    topics = EnvConfig.get_topics_from_env('sub')
+    num_of_subscribers = config_mgr.get_num_subscribers()
 
-    ipc_msgbus_config = None
-    tcp_msgbus_config = None
+    ipc_msgbus_config = {}
+    tcp_msgbus_config = {}
 
-    for topic in topics:
-        publisher, topic = topic.split('/')
-        cfg_env = f'{topic}_cfg'
-        if cfg_env not in os.environ:
-            raise RuntimeError(f'Missing env var {cfg_env} for topic config')
-        mode, addr = os.environ[f'{topic}_cfg'].split(',')
-        mode = mode.strip()
-        addr = addr.strip()
-
-        if mode == 'zmq_ipc':
-            if ipc_msgbus_config is None:
-                ipc_msgbus_config = {'type': 'zmq_ipc'}
-
-            if 'socket_dir' not in ipc_msgbus_config:
-                ipc_msgbus_config['socket_dir'] = addr
-            elif ipc_msgbus_config['socket_dir'] != addr:
-                    raise RuntimeError('Different socket dirs specified')
-        elif mode == 'zmq_tcp':
-            if tcp_msgbus_config is None:
-                tcp_msgbus_config = {'type': 'zmq_tcp'}
-
-            host, port = addr.split(':')
-            topic_cfg = {'host': host, 'port': int(port)}
-
-            # Getting the keys if we are not running in dev_mode
-            if not dev_mode:
-                publisher = publisher.strip()
-
-                topic_cfg['server_public_key'] = config_client.GetConfig(
-                        f'/Publickeys/{publisher}')
-                client_public_key = config_client.GetConfig(
-                        f'/Publickeys/{app_name}')
-                client_secret_key = config_client.GetConfig(
-                        f'/{app_name}/private_key')
-
-                assert client_public_key is not None, 'Missing public key'
-                assert client_secret_key is not None, 'Missing secret key'
-
-                topic_cfg['client_public_key'] = client_public_key
-                topic_cfg['client_secret_key'] = client_secret_key
-
-            tcp_msgbus_config[topic] = topic_cfg
-        else:
-            raise RuntimeError(f'Unknown msgbus type: {mode}')
-
+    for index in range(num_of_subscribers):
+        # Fetching subscriber element based on index
+        sub_ctx = config_mgr.get_subscriber_by_index(index)
+        # Fetching msgbus config of subscriber
+        msgbus_cfg = sub_ctx.get_msgbus_config()
+        mode = msgbus_cfg['type']
+        topics = sub_ctx.get_topics()
+        for topic in topics:
+            if mode == 'zmq_ipc':
+                ipc_msgbus_config[topic] = msgbus_cfg
+            elif mode == 'zmq_tcp':
+                tcp_msgbus_config[topic] = msgbus_cfg
+            else:
+                raise RuntimeError(f'Unknown msgbus type: {mode}')
     return ipc_msgbus_config, tcp_msgbus_config
