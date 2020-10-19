@@ -14,9 +14,7 @@
                     "DEV_MODE=$DEV_MODE",
                     "PROFILING_MODE=$PROFILING_MODE",
                     "ETCD_HOST=$ETCD_HOST",
-                    "ZMQ_RECV_HWM=1000",
-                    "SubTopics=VideoAnalytics/camera1_stream_results",
-                    "camera1_stream_results_cfg=zmq_tcp,${HOST_IP}:65013",
+                    "SUBSCRIBER_ENDPOINT=$HOST_IP:65013",
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST,azureblobstorageoniotedge"
                 ],
                 "Volumes": {
@@ -43,6 +41,18 @@
                         {
                             "Target": "/run/secrets/etcd_root_key",
                             "Source": "$EIS_CERTIFICATES/root/root_client_key.pem",
+                            "Type": "bind",
+                            "ReadOnly": true
+                        },
+                        {
+                            "Target": "/run/secrets/etcd_EISAzureBridge_cert",
+                            "Source": "$EIS_CERTIFICATES/EISAzureBridge/EISAzureBridge_client_certificate.pem",
+                            "Type": "bind",
+                            "ReadOnly": true
+                        },
+                        {
+                            "Target": "/run/secrets/etcd_EISAzureBridge_key",
+                            "Source": "$EIS_CERTIFICATES/EISAzureBridge/EISAzureBridge_client_key.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         }

@@ -16,17 +16,8 @@
                     "ETCD_HOST=$ETCD_HOST",
                     "ETCD_PREFIX=${ETCD_PREFIX}",
                     "C_LOG_LEVEL=INFO",
-
-                    "Clients=Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport,WebVisualizer,TLSRemoteAgent,EISAzureBridge",
                     "CertType=zmq",
-                    "ZMQ_RECV_HWM=1000",
-
-                    "SubTopics=VideoIngestion/camera1_stream",
-                    "camera1_stream_cfg=zmq_ipc,${SOCKET_DIR}",
-
-                    "PubTopics=camera1_stream_results",
-                    "camera1_stream_results_cfg=zmq_tcp,0.0.0.0:65013",
-
+                    "PUBLISHER_ENDPOINT=0.0.0.0:65013",
                     "AML_TENANT_ID=$AML_TENANT_ID",
                     "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
                     "AML_PRINCIPAL_PASS=$AML_PRINCIPAL_PASS"

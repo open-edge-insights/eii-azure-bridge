@@ -72,7 +72,7 @@ for var in VARS:
     if re.findall(f'{var}=(.+|)', this_env):
         # Place the value in this_env
         this_env = re.sub(
-                f'{var}=.+',
+                f'{var}=(.+|)',
                 f'{var}={value}',
                 this_env)
     else:

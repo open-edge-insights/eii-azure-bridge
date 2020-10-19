@@ -23,6 +23,9 @@ import os
 import json
 import asyncio
 import logging
+import socket
+import time
+import etcd3
 from distutils.util import strtobool
 from jsonschema import validate
 from eab.subscriber import emb_subscriber_listener
@@ -34,8 +37,9 @@ from azure.storage.blob import BlobServiceClient
 
 # EIS Imports
 import eis.msgbus as emb
-from eis.config_manager import ConfigManager
+import cfgmgr.config_manager as cfg
 from util.log import configure_logging
+from util.util import Util
 
 
 class BridgeState:
@@ -79,12 +83,11 @@ class BridgeState:
 
         # Assign initial state values
         self.loop = asyncio.get_event_loop()
-        self.ipc_msgbus_ctx = None
-        self.tcp_msgbus_ctx = None
+        self.ipc_msgbus_ctxs = {}
+        self.tcp_msgbus_ctxs = {}
         self.config_listener = None
         self.subscriber_listeners = None
         self.subscribers = []
-        self.app_name = os.environ['AppName']
         self.config = None  # Saved digital twin
 
         # Setup Azure Blob connection
@@ -106,21 +109,14 @@ class BridgeState:
 
         self.log.info('Initializing EIS config manager')
 
-        conf = {
-            "certFile": "",
-            "keyFile": "",
-            "trustFile": ""
-        }
+        try:
+            self.config_mgr = cfg.ConfigMgr()
+            self.dev_mode = self.config_mgr.is_dev_mode()
+            self.app_name = self.config_mgr.get_app_name()
+        except Exception as ex:
+            self.log.error(f'Exception: {ex}')
+            raise ex
 
-        self.dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
-
-        if not self.dev_mode :
-            conf["certFile"] = "/run/secrets/etcd_root_cert"
-            conf["keyFile"] = "/run/secrets/etcd_root_key"
-            conf["trustFile"] = "/run/secrets/ca_etcd"
-
-        cfg_mgr = ConfigManager()
-        self.cfg_client = cfg_mgr.get_config_client('etcd', conf)
         self.log.debug('Finished initializing config manager')
 
         # Configure the EIS Azure bridge state with its initial state
@@ -145,7 +141,7 @@ class BridgeState:
         validate(instance=config, schema=self.schema)
 
         # Reset message bus state if needed
-        if self.ipc_msgbus_ctx is not None or self.tcp_msgbus_ctx is not None:
+        if self.ipc_msgbus_ctxs or self.tcp_msgbus_ctxs:
             # Stop all subscribers
             self.log.debug('Stopping previous subscribers')
             self.subscriber_listeners.cancel()
@@ -156,12 +152,12 @@ class BridgeState:
 
             # Clean up current message bus context
             self.log.debug('Cleaning up old message bus context')
-            if self.ipc_msgbus_ctx is not None:
-                del self.ipc_msgbus_ctx
-                self.ipc_msgbus_ctx = None
-            if self.tcp_msgbus_ctx is not None:
-                del self.tcp_msgbus_ctx
-                self.tcp_msgbus_ctx = None
+            if self.ipc_msgbus_ctxs:
+                del self.ipc_msgbus_ctxs
+                self.ipc_msgbus_ctxs = {}
+            if self.tcp_msgbus_ctxs:
+                del self.tcp_msgbus_ctxs
+                self.tcp_msgbus_ctxs = {}
 
         # Configure logging
         if 'log_level' in config:
@@ -173,16 +169,20 @@ class BridgeState:
 
         self.log.info('Getting EIS Message Bus configuration')
         ipc_msgbus_config, tcp_msgbus_config = get_msgbus_config(
-                self.app_name, self.cfg_client, self.dev_mode)
+                self.app_name, self.config_mgr, self.dev_mode)
 
-        self.log.debug(f'msgbus configs: \nIPC: {ipc_msgbus_config}, \nTCP:{tcp_msgbus_config}')
+        self.log.debug(f'Topic msgbus config dict: \nIPC: {ipc_msgbus_config}, \nTCP:{tcp_msgbus_config}')
 
         # Initialize message bus context
         self.log.info('Initializing EIS Message Bus')
-        if ipc_msgbus_config is not None:
-            self.ipc_msgbus_ctx = emb.MsgbusContext(ipc_msgbus_config)
-        if tcp_msgbus_config is not None:
-            self.tcp_msgbus_ctx = emb.MsgbusContext(tcp_msgbus_config)
+        if ipc_msgbus_config:
+            for topic, msgbus_config in ipc_msgbus_config.items():
+                ipc_msgbus_ctx = emb.MsgbusContext(msgbus_config)
+                self.ipc_msgbus_ctxs[topic] = ipc_msgbus_ctx
+        if tcp_msgbus_config:
+            for topic, msgbus_config in tcp_msgbus_config.items():
+                tcp_msgbus_ctx = emb.MsgbusContext(msgbus_config)
+                self.tcp_msgbus_ctxs[topic] = tcp_msgbus_ctx
 
         # Initialize subscribers
         listener_coroutines = []
@@ -200,15 +200,10 @@ class BridgeState:
                 else:
                     cn = None
 
-                msgbus_type, addr = os.environ[f'{in_topic}_cfg'].split(',')
-
-                if msgbus_type == 'zmq_ipc':
-                    subscriber = self.ipc_msgbus_ctx.new_subscriber(in_topic)
-                else:
-                    # It MUST be TCP at this point, this would already have
-                    # been verified when creating the msgbus configurations,
-                    # so there is no need to verify here
-                    subscriber = self.tcp_msgbus_ctx.new_subscriber(in_topic)
+                if in_topic in self.ipc_msgbus_ctxs:
+                    subscriber = self.ipc_msgbus_ctxs[in_topic].new_subscriber(in_topic)
+                elif in_topic in self.tcp_msgbus_ctxs:
+                    subscriber = self.tcp_msgbus_ctxs[in_topic].new_subscriber(in_topic)
 
                 self.subscribers.append(subscriber)
                 listener_coroutines.append(emb_subscriber_listener(
@@ -218,12 +213,12 @@ class BridgeState:
             # subscribed to data
             for sub in self.subscribers:
                 sub.close()
-            if self.ipc_msgbus_ctx is not None:
-                del self.ipc_msgbus_ctx
-                self.ipc_msgbus_ctx = None
-            if self.tcp_msgbus_ctx is not None:
-                del self.tcp_msgbus_ctx
-                self.tcp_msgbus_ctx = None
+            if self.ipc_msgbus_ctxs:
+                del self.ipc_msgbus_ctxs
+                self.ipc_msgbus_ctxs = {}
+            if self.tcp_msgbus_ctxs:
+                del self.tcp_msgbus_ctxs
+                self.tcp_msgbus_ctxs = {}
             raise
 
         # Schedule task for C2D Listener
@@ -233,7 +228,31 @@ class BridgeState:
         self.log.info('Getting ETCD configuration')
 
         # NOTE: THIS IS A HACK, AND NEEDS TO BE FIXED IN THE FUTURE
-        resp = self.cfg_client.etcd.get_all()
+        hostname = 'localhost'
+
+        # This change will be moved to an argument to the function in 2.3
+        # This is done now for backward compatibility
+        etcd_host = os.getenv('ETCD_HOST')
+        if etcd_host is not None and etcd_host != '':
+            hostname = etcd_host
+
+        port = os.getenv('ETCD_CLIENT_PORT', '2379')
+        if not Util.check_port_availability(hostname, port):
+            raise RuntimeError(f'etcd service port: {port} is not up!')
+
+        try:
+            if self.dev_mode:
+                self.etcd = etcd3.client(host=hostname, port=port)
+            else:
+                self.etcd = etcd3.client(host=hostname, port=port,
+                                         ca_cert='/run/secrets/ca_etcd',
+                                         cert_key='/run/secrets/etcd_root_key',
+                                         cert_cert='/run/secrets/etcd_root_cert')
+        except Exception as e:
+            self.log.error(f'Exception raised when creating etcd \
+                client instance with error:{e}')
+            raise e
+        resp = self.etcd.get_all()
         eis_config = {}
         for value, meta in resp:
             try:
@@ -257,7 +276,7 @@ class BridgeState:
         self.log.debug('Applying changes to the changed configs')
         for key in changed_keys:
             self.log.debug(f'Pushing config for {key}')
-            self.cfg_client.PutConfig(
+            self.etcd.put(
                     key, json.dumps(new_eis_config[key], indent=4))
             self.log.debug(f'Successfully pushed config for {key}')
 
@@ -265,7 +284,7 @@ class BridgeState:
         for key in removed_keys:
             # NOTE: THIS IS A HACK, AND NEEDS TO BE FIXED IN THE FUTURE
             self.log.debug(f'Removing config for {key}')
-            self.cfg_client.etcd.delete(key)
+            self.etcd.delete(key)
             self.log.debug(f'Successfully removed config for {key}')
 
         self.log.info('EIS configuration update applied')
@@ -285,13 +304,21 @@ class BridgeState:
             self.log.debug('Stopping the config listener')
             self.config_listener.cancel()
 
-        if self.msgbus_ctx is not None:
-            self.log.debug('Stopping all EIS subscribers')
+        if self.ipc_msgbus_ctxs:
+            self.log.debug('Stopping all IPC EIS subscribers')
             self.subscriber_listeners.cancel()
 
             self.log.debug('Cleaning up msgbus context')
-            del self.msgbus_ctx
-            self.msgbus_ctx = None
+            del self.ipc_msgbus_ctxs
+            self.ipc_msgbus_ctxs = {}
+
+        if self.tcp_msgbus_ctxs:
+            self.log.debug('Stopping all TCP EIS subscribers')
+            self.subscriber_listeners.cancel()
+
+            self.log.debug('Cleaning up msgbus context')
+            del self.tcp_msgbus_ctxs
+            self.tcp_msgbus_ctxs = {}
 
         self.log.debug('Disconnecting from Azure IoT Hub client')
         self.loop.run_until_complete(self.module_client.disconnect())
