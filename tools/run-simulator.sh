@@ -63,17 +63,6 @@ source ./.env
 check_error "Failed to source environment"
 
 # Creating some required directories by EIS
-if [ ! -d "/opt/Intel/OpenCL/Boards" ] ; then
-    mkdir -p /opt/Intel/OpenCL/Boards
-fi
-
-if [ ! -d "/opt/intel/intelFPGA" ] ; then
-    mkdir -p /opt/intel/intelFPGA
-fi
-
-if [ ! -d "/opt/altera" ] ; then
-    mkdir -p /opt/altera
-fi
 
 eis_config="../build/provision/config/eis_config.json"
 if [ ! -f "$eis_config" ] ; then
