@@ -23,12 +23,9 @@
                     "AML_PRINCIPAL_PASS=$AML_PRINCIPAL_PASS"
                 ],
                 "Volumes": {
-                    "/opt/Intel/OpenCL/Boards": {},
                     "/dev": {},
                     "/EIS/sockets": {},
-                    "/var/tmp": {},
-                    "/opt/altera": {},
-                    "/opt/intel/intelFPGA": {}
+                    "/var/tmp": {}
                 },
                 "NetworkingConfig": {
                     "EndpointsConfig": {
@@ -50,23 +47,15 @@
                             "CgroupPermissions": "rwm"
                         },
                         {
-                            "PathOnHost": "/dev/acla10_1150_sg10",
-                            "PathInContainer": "/dev/acla10_1150_sg10",
-                            "CgroupPermissions": "rwm"
-                        },
-                        {
                             "PathOnHost": "/dev/ion",
                             "PathInContainer": "/dev/ion",
                             "CgroupPermissions": "rwm"
                         }
                     ],
                     "Binds": [
-                        "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards:rw",
                         "/dev:/dev:rw",
                         "$EIS_INSTALL_PATH/sockets:/EIS/sockets:rw",
-                        "/var/tmp:/var/tmp:rw",
-                        "/opt/altera:/opt/altera:rw",
-                        "/opt/intel/intelFPGA:/opt/intel/intelFPGA:rw"
+                        "/var/tmp:/var/tmp:rw"
                     ],
                     "LogConfig": {
                         "Type": "",
