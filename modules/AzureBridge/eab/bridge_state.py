@@ -23,7 +23,6 @@ import os
 import json
 import asyncio
 import logging
-import socket
 import time
 import etcd3
 from distutils.util import strtobool
@@ -144,20 +143,9 @@ class BridgeState:
         if self.ipc_msgbus_ctxs or self.tcp_msgbus_ctxs:
             # Stop all subscribers
             self.log.debug('Stopping previous subscribers')
-            self.subscriber_listeners.cancel()
 
-            # Close existing subscribers
-            for sub in self.subscribers:
-                sub.close()
-
-            # Clean up current message bus context
-            self.log.debug('Cleaning up old message bus context')
-            if self.ipc_msgbus_ctxs:
-                del self.ipc_msgbus_ctxs
-                self.ipc_msgbus_ctxs = {}
-            if self.tcp_msgbus_ctxs:
-                del self.tcp_msgbus_ctxs
-                self.tcp_msgbus_ctxs = {}
+            # Clean up the message bus contexts and subscribers
+            self._cleanup_msgbus_ctxs()
 
         # Configure logging
         if 'log_level' in config:
@@ -171,7 +159,8 @@ class BridgeState:
         ipc_msgbus_config, tcp_msgbus_config = get_msgbus_config(
                 self.app_name, self.config_mgr, self.dev_mode)
 
-        self.log.debug(f'Topic msgbus config dict: \nIPC: {ipc_msgbus_config}, \nTCP:{tcp_msgbus_config}')
+        self.log.debug(f'Topic msgbus config dict: \nIPC: '
+                       f'{ipc_msgbus_config}, \nTCP:{tcp_msgbus_config}')
 
         # Initialize message bus context
         self.log.info('Initializing EIS Message Bus')
@@ -191,8 +180,8 @@ class BridgeState:
             for (in_topic, topic_conf) in config['topics'].items():
                 self.log.info(f'Creating subscriber {in_topic}')
                 self.log.debug(f'{in_topic} config: {topic_conf}')
-                assert('az_output_topic' in topic_conf,
-                       'Missing az_output_topic')
+                assert 'az_output_topic' in topic_conf, \
+                        'Missing az_output_topic'
 
                 if self.bsc is not None and \
                         'az_blob_container_name' in topic_conf:
@@ -200,25 +189,26 @@ class BridgeState:
                 else:
                     cn = None
 
+                msgbus_ctx = None
                 if in_topic in self.ipc_msgbus_ctxs:
-                    subscriber = self.ipc_msgbus_ctxs[in_topic].new_subscriber(in_topic)
+                    msgbus_ctx = self.ipc_msgbus_ctxs[in_topic]
                 elif in_topic in self.tcp_msgbus_ctxs:
-                    subscriber = self.tcp_msgbus_ctxs[in_topic].new_subscriber(in_topic)
+                    msgbus_ctx = self.tcp_msgbus_ctxs[in_topic]
+                else:
+                    raise RuntimeError(
+                            f'Cannot find {in_topic} msgbus context')
+
+                # Initialize the subcsriber
+                subscriber = msgbus_ctx.new_subscriber(in_topic)
 
                 self.subscribers.append(subscriber)
                 listener_coroutines.append(emb_subscriber_listener(
                     self, subscriber, topic_conf['az_output_topic'], cn))
         except Exception:
-            # Clean up any existing message bus subscribers that successfully
-            # subscribed to data
-            for sub in self.subscribers:
-                sub.close()
-            if self.ipc_msgbus_ctxs:
-                del self.ipc_msgbus_ctxs
-                self.ipc_msgbus_ctxs = {}
-            if self.tcp_msgbus_ctxs:
-                del self.tcp_msgbus_ctxs
-                self.tcp_msgbus_ctxs = {}
+            # Clean up the message bus contexts
+            self._cleanup_msgbus_ctxs()
+
+            # Re-raise whatever exception just occurred
             raise
 
         # Schedule task for C2D Listener
@@ -242,17 +232,17 @@ class BridgeState:
 
         try:
             if self.dev_mode:
-                self.etcd = etcd3.client(host=hostname, port=port)
+                etcd = etcd3.client(host=hostname, port=port)
             else:
-                self.etcd = etcd3.client(host=hostname, port=port,
-                                         ca_cert='/run/secrets/ca_etcd',
-                                         cert_key='/run/secrets/etcd_root_key',
-                                         cert_cert='/run/secrets/etcd_root_cert')
+                etcd = etcd3.client(host=hostname, port=port,
+                                    ca_cert='/run/secrets/ca_etcd',
+                                    cert_key='/run/secrets/etcd_root_key',
+                                    cert_cert='/run/secrets/etcd_root_cert')
         except Exception as e:
-            self.log.error(f'Exception raised when creating etcd \
-                client instance with error:{e}')
+            self.log.error(f'Exception raised when creating etcd'
+                           f'client instance with error: {e}')
             raise e
-        resp = self.etcd.get_all()
+        resp = etcd.get_all()
         eis_config = {}
         for value, meta in resp:
             try:
@@ -268,6 +258,7 @@ class BridgeState:
         new_eis_config = json.loads(config['eis_config'])
         changed_keys, removed_keys = find_root_changes(
                 eis_config, new_eis_config)
+
         self.log.debug(f'Changed service configs: {changed_keys}')
         self.log.debug(f'Removed service configs: {removed_keys}')
 
@@ -276,7 +267,7 @@ class BridgeState:
         self.log.debug('Applying changes to the changed configs')
         for key in changed_keys:
             self.log.debug(f'Pushing config for {key}')
-            self.etcd.put(
+            etcd.put(
                     key, json.dumps(new_eis_config[key], indent=4))
             self.log.debug(f'Successfully pushed config for {key}')
 
@@ -284,7 +275,7 @@ class BridgeState:
         for key in removed_keys:
             # NOTE: THIS IS A HACK, AND NEEDS TO BE FIXED IN THE FUTURE
             self.log.debug(f'Removing config for {key}')
-            self.etcd.delete(key)
+            etcd.delete(key)
             self.log.debug(f'Successfully removed config for {key}')
 
         self.log.info('EIS configuration update applied')
@@ -304,21 +295,36 @@ class BridgeState:
             self.log.debug('Stopping the config listener')
             self.config_listener.cancel()
 
-        if self.ipc_msgbus_ctxs:
-            self.log.debug('Stopping all IPC EIS subscribers')
-            self.subscriber_listeners.cancel()
-
-            self.log.debug('Cleaning up msgbus context')
-            del self.ipc_msgbus_ctxs
-            self.ipc_msgbus_ctxs = {}
-
-        if self.tcp_msgbus_ctxs:
-            self.log.debug('Stopping all TCP EIS subscribers')
-            self.subscriber_listeners.cancel()
-
-            self.log.debug('Cleaning up msgbus context')
-            del self.tcp_msgbus_ctxs
-            self.tcp_msgbus_ctxs = {}
+        # Clean up the message bus contexts
+        self._cleanup_msgbus_ctxs()
 
         self.log.debug('Disconnecting from Azure IoT Hub client')
         self.loop.run_until_complete(self.module_client.disconnect())
+
+    def _cleanup_msgbus_ctxs(self):
+        """Helper function to clean up the message bus contexts stored within
+        the bridge state.
+        """
+        # If the subscriber listeners are running in the asyncio loop stop them
+        if self.subscriber_listeners is not None:
+            self.log.debug('Stopping all EIS subscriber listeners')
+            self.subscriber_listeners.cancel()
+
+        # Close existing subscribers
+        self.log.debug('Closing all EIS subscribers')
+        for sub in self.subscribers:
+            sub.close()
+
+        # Loop over the IPC and TCP message bus contexts and force their
+        # their deletion so any internal state can be cleanup immediately
+        if self.ipc_msgbus_ctxs:
+            self.log.debug('Cleaning up IPC msgbus context')
+            for topic, msgbus_ctx in self.ipc_msgbus_ctxs.items():
+                del msgbus_ctx
+            self.ipc_msgbus_ctxs = {}
+
+        if self.tcp_msgbus_ctxs:
+            self.log.debug('Cleaning up TCP msgbus context')
+            for topic, msgbus_ctx in self.tcp_msgbus_ctxs.items():
+                del msgbus_ctx
+            self.tcp_msgbus_ctxs = {}

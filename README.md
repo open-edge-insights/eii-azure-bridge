@@ -206,9 +206,10 @@ For more detailed instructions on this process, see the EIS README and User Guid
 
 > **IMPORTANT NOTE:**
 > If you are using TCP communication between VI or VA and the EIS Azure Bridge,
-> modify the `Clients` environmental variable in your `docker-compose.yml` file use
-> while provisioning EIS to include `EISAzureBridge` so that the connection can be
-> encrypted/authenticated.
+> then you must modify the `AllowedClients` list under the `Publishers` section
+> of the interfaces configuration of VI or VA to include `EISAzureBridge`.
+> This must be done prior to provisioning to that the proper certificates will
+> be generated to encrypt/authenticate connections.
 
 In the Azure IoT ecosystem you can deploy to single-nodes and you can do bulk
 deployments. This section will cover how to deploy the EIS Azure Bridge and
@@ -390,7 +391,7 @@ you can re-add this to the EIS Azure Bridge digital twin by running the followin
 command:
 
 ```sh
-$ python3 serialize_eis_config.py example.template.json ../build/provision/config/eis_config.json
+$ python3 tools/serialize_eis_config.py example.template.json ../build/provision/config/eis_config.json
 ```
 
 **IMPORTANT NOTE:**
@@ -517,42 +518,100 @@ contains the entire configuration for the EIS services running in your edge
 environment.
 
 The configuration of the EIS Message Bus is done in a method similar to that of
-the EIS services, such as Video Analytics service. To specify the topics which
-the bridge should subscribe to you must set the `Subscriber` object like the
-one in [modules/EISAzureBridge/config.json](./modules/EISAzureBridge/config.json)
+the other EIS services, such as the Video Analytics service. To provided the
+configuration for the topics which the bridge should subscribe to,
+you must set the `Subscribers` list in the [modules/EISAzureBridge/config.json](./modules/EISAzureBridge/config.json)
+file. The list is comprised of JSON objects for every subscription you wish the
+EIS Azure Bridge to establish. Below is an example of the configuration for
+subscribing to the the publications coming from the Video Analytics container.
 
-Eg:
 ```javascript
 {
     "Subscribers": [
-            {
-                "Name": "default",
-                "Type": "zmq_tcp",
-                "EndPoint": "127.0.0.1:65013",
-                "PublisherAppName": "VideoAnalytics",
-                "Topics": [
-                    "camera1_stream_results"
-                ]
-            }
-        ]
+        {
+            // Specifies that this is the default subscriber
+            "Name": "default",
+
+            // Gives the type of connection, i.e. zmq_tcp, this could
+            // also be zmq_ipc
+            "Type": "zmq_tcp",
+
+            // The EndPoint specifies the details of the connect, for an
+            // IPC connection, this would be a JSON object with the
+            // SocketDir key pointing to the directory of the IPC sockets
+            "EndPoint": "127.0.0.1:65013",
+
+            // Specification of the AppName of the service publishing the
+            // messages. This allows the EIS Azure Bridge to get the needed
+            // authentication keys to subscribe
+            "PublisherAppName": "VideoAnalytics",
+
+            // Specifies the list of all of the topics which the
+            // EISAzureBridge shall subscribe to
+            "Topics": [
+                "camera1_stream_results"
+            ]
+        }
+    ]
 }
 ```
 
-If one has above ZMQ TCP configuration, the `Endpoint` in the above config of EISAzureBridge
-has to be overrided with the `SUBSCRIBER_ENDPOINT` (more applicable when we have single `Subscriber`
-object in the `Subscribers` list) or `SUBSCRIBER_default_ENDPOINT` (more applicable when we have multiple
- `Subscriber` objects in the `Subscribers` array) env value set to `$HOST_IP:port` in the [EISAzureBridge
- deployment manifest file](./config/templates/EISAzureBridge.template.json) and corresponding
-`PUBLISHER_ENDPOINT` (more applicable when we have single `Publisher` object in the `Publishers` array) or
-`PUBLISHER_default_ENDPOINT` (more applicable when we have multiple `Publisher` objects in the `Publishers`
-array) env value set to `0.0.0.0:port` (this configuration needs to go into either
-[VideoIngestion manifest file](./config/templates/ia_video_ingestion.template.json) or
-[VideoAnalytics manifest file](./config/templates/ia_video_analytics.template.json) based on to which of these
-EIS services the EISAzureBridge subscribes to.
+There are a few important implications to be aware of for both ZeroMQ TCP and IPC
+subscribers over the EIS Message Bus. These implications are specified below.
 
-**IMPORTANT NOTE:**: If EISAzureBridge is subscribing to publisher over `ZMQ IPC`, then no need to use
-the above overriding ENVs. Please refer to additional configuration that needs to be done if using `ZMQ IPC`
-explained under the `Step 3 - Configuring Azure IoT Deployment Manifest` important notes above.
+**ZeroMQ TCP Subscription Implications**
+
+For ZeroMQ TCP subscribers, like the example shown above, the `EndPoint` in
+the subscriber's configuration object has to be overridden through an
+environmental variable. The reason for this, is that the EIS Azure Bridge
+service runs attached to a bridged Docker network created by the Azure IoT
+Edge Runtime, whereas the other EIS services run on the host's network. In
+order to subscribe, the EIS Azure Bridge must use the host's IP address to
+connect.
+
+If the EIS Azure Bridge is only subscribing to a single service, then the
+`EndPoint` can be overridden by setting the `SUBSCRIBER_ENDPOINT` environmental
+variable. The environmental variable changes if there are multiple subscribers.
+For instance, if the configuration example had another object in the Subscribers
+list which had the `Name` key set to `example_name`, then the environmental
+variable name would need to be `SUBSCRIBER_example_name_ENDPOINT`. Essentially,
+for multiple subscribers the `Name` property must be in the environmental
+variable name between the `SUBSCRIBER_` and `_ENDPOINT`.
+
+In either case, the value of the environmental variable must be set to
+`$HOST_IP:<PORT>` where you must fill in what the desired port is. Note that the
+IP address is the variable `$HOST_IP`. This will be pulled from the `.env` file
+when generating your deployment manifest.
+
+The final implication is on the configuration of the services which the
+EIS Azure Bridge is subscribing to. Most EIS services publishing over TCP set
+their host to `127.0.0.1`. This keeps the communication only available to
+subscribers which are on the local host network on the system. In order for
+the EIS Azure Bridge to subscribe to these publications this must be changed
+to `0.0.0.0`.
+
+This can be accomplished by overridding the service's publisher `EndPoint`
+configuration via environmental variables, just like with the EIS Azure Bridge
+service. For each service which the EIS Azure Bridge needs to subscribe to over
+TCP, add the environmental variable `PUBLISHER_ENDPOINT=0.0.0.0:<PORT>` to the
+environmental variable configuration of the serivce's module configuration in
+your deployment manifest (note: be sure to replace the port).  Or if there are
+multiple topics being published, use the variable `PUBLISHER_<Name>_ENDPOINT`.
+
+These variables have already been set for to have the EIS Azure Bridge subscribe
+to a single instance of the Video Analytics service. This configuration can be
+seen in your deployment manifest under the, "EISAzureBridge", and, "ia_video_analytics",
+modules. Or, you can see this configuration being set in the,
+"config/templates/ia_video_analytics.template.json", and,
+"config/templates/EISAzureBridge.template.json", files.
+
+**ZeroMQ IPC Subscription Implications**
+
+If EISAzureBridge is subscribing to publisher over a ZeroMQ IPC socket, then
+there is no need to use the above overriding environmental variables. Please
+refer to additional configuration that needs to be done if using when using
+IPC connections explained under the, "Step 3 - Configuring Azure IoT Deployment Manifest"
+section above.
 
 Below is an example digital twin for the EIS Azure Bridge:
 
@@ -591,13 +650,32 @@ the topic key will be an additional JSON object, where there is one required
 key, `az_output_topic`, which is the topic on Azure IoT Edge Runtime to use and
 then an optional key, `az_blob_container_name`. This key specifies the Azure Blob
 Storage container to store the images from the EIS video analytics pipeline in.
-If this (key, value) pair is not specified, then the images will not be saved.
+If the `az_blob_container_name` key is not specified, then the images will
+not be saved.
 
 > **IMPORTANT NOTE:** "Container" in the Azure Blob Storage context is not
 > referencing a Docker container, but rather a storage structure within the
 > Azure Blob Storage instance running on your edge device. For more information
 > on the data structure of Azure Blob Storage, see
-> [this link](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blob-storage-resources)
+> [this link](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blob-storage-resources).
+
+**IMPORTANT NOTE**
+
+The Azure Blob Storage service places strict requirements on the name of the,
+"container", under which it stores blobs. This impacts the value given for the
+`az_blob_container_name` configuration key. According to the Azure documentation,
+the name must a valid DNS name adhering to the following rules:
+
+* Container names must start or end with a letter or number, and can contain
+    only letters, numbers, and the dash (-) character.
+* Every dash (-) character must be immediately preceded and followed by a
+    letter or number; consecutive dashes are not permitted in container names.
+* All letters in a container name must be lowercase.
+* Container names must be from 3 through 63 characters long.
+
+For more information on the name conventions/restrictions for Azure Blob Storage
+container names, see [this](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata)
+page of the Azure documentation.
 
 ### Sample EIS ONNX UDF
 
