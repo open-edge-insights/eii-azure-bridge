@@ -24,7 +24,6 @@ import json
 import logging
 import traceback as tb
 from dictdiffer import diff, patch, swap, revert
-from eis.env_config import EnvConfig
 from util.util import Util
 
 

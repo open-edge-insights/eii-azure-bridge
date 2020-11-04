@@ -22,27 +22,20 @@ ARG EIS_VERSION
 ARG DOCKER_REGISTRY
 FROM ${DOCKER_REGISTRY}ia_eisbase:$EIS_VERSION as ia_eisbase
 
-ARG HOST_TIME_ZONE=""
-
-WORKDIR ${PY_WORK_DIR}
-
-# Setting timezone inside the container
-ARG DEBIAN_FRONTEND=noninteractive
-RUN echo "$HOST_TIME_ZONE" >/etc/timezone
-RUN cat /etc/timezone
-RUN apt-get update && \
-    apt-get install -y tzdata && \
-    ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime && \
-    dpkg-reconfigure -f noninteractive tzdata
-
-COPY requirements.txt ./
-
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
-
 ARG EIS_UID
 ARG EIS_USER_NAME
 RUN useradd -r -u ${EIS_UID} ${EIS_USER_NAME}
+
+ENV PY_ETCD3_VERSION cdc4c48bde88a795230a02aa574df84ed9ccfa52
+RUN git clone https://github.com/kragniz/python-etcd3 && \
+    cd python-etcd3 && \
+    git checkout -b ${PY_ETCD3_VERSION} ${PY_ETCD3_VERSION} && \
+    python3.6 setup.py install && \
+    cd .. && \
+    rm -rf python-etcd3
+
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
 
 FROM ${DOCKER_REGISTRY}ia_common:$EIS_VERSION as common
 
