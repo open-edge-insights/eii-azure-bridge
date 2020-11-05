@@ -138,6 +138,12 @@ process. To run this script, execute the following command:
 $ sudo -H -E -u ${USER} ./tools/install-dev-tools.sh
 ```
 
+Please set the `PATH` environmental variable as below in the terminal
+where you are using `iotedgedev` and `iotedgehubdev` commands:
+```sh
+$ export PATH=~/.local/bin:$PATH
+```
+
 > **NOTE:** The `-u ${USER}` flag above allows the Azure CLI to launch your
 > browser (if it can) so you can login to your Azure account.
 
@@ -607,11 +613,58 @@ modules. Or, you can see this configuration being set in the,
 
 **ZeroMQ IPC Subscription Implications**
 
-If EISAzureBridge is subscribing to publisher over a ZeroMQ IPC socket, then
-there is no need to use the above overriding environmental variables. Please
-refer to additional configuration that needs to be done if using when using
-IPC connections explained under the, "Step 3 - Configuring Azure IoT Deployment Manifest"
-section above.
+If EISAzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure that
+* EISAzureBridge app's subscriber interfaces configuration matches to that of the 
+  publisher app's publisher interfaces configuration in `build/provision/config/eis_config.json`
+  file.  Below is an example of the EISAzureBridge interface configuration subscribing to the 
+  publications coming from the VideoIngestion container.
+  
+  ```javascript
+  {
+    "Subscribers": [
+        {
+            // Specifies that this is the default subscriber
+            "Name": "default",
+
+            // Gives the type of connection, i.e. zmq_tcp/zmq_ipc
+            "Type": "zmq_ipc",
+
+            // The EndPoint specifies the details of the connect, for an
+            // IPC connection, this would be a JSON object with the
+            // SocketDir key pointing to the directory of the IPC sockets
+            "EndPoint": "/EIS/sockets",
+
+            // Specification of the AppName of the service publishing the
+            // messages. This allows the EIS Azure Bridge to get the needed
+            // authentication keys to subscriber
+            "PublisherAppName": "VideoIngestion",
+
+            // Specifies the list of all of the topics which the
+            // EISAzureBridge shall subscribe to
+            "Topics": [
+                "camera1_stream"
+            ]
+        }
+     ]
+    }
+    ```
+
+* Please follow `Step 3 - Configuring Azure IoT Deployment Manifest` above to generate the manifest
+  template file and deployment manifest files. Ensure to remove all the `PUBLISHER_ENDPOINT`, 
+  `PUBLISHER_<Name>_ENDPOINT`, `SUBSCRIBER_ENDPOINT` and `SUBSCRIBER_<Name>_ENDPOINT` environmental 
+  variables from the generated deployment manifest template file i.e., [example.template.json](./example.template.json) 
+  as these ENVs are not applicable for IPC configuration. Additionally, update the 
+  [example.template.json](./example.template.json) as per the recommendations mentioned in the 
+  `Important Note` section for IPC configuration. Please re-generate the deployment manifest file (`config/example.amd64.json`)
+  by running the below command:
+  
+  ```sh
+  $ iotedgedev genconfig -f example.template.json
+  ```
+
+
+* Please follow `Step 4 - Deployment` above for deployment
+  
 
 Below is an example digital twin for the EIS Azure Bridge:
 
@@ -936,8 +989,11 @@ section above. Then, instead of step 4, run the following command to setup
 the simulator:
 
 ```sh
-$ sudo iotedgehubdev setup -c "<edge-device-connection-string>"
+$ sudo env "PATH=$PATH" iotedgehubdev setup -c "<edge-device-connection-string>"
 ```
+
+**NOTE:** The `env "PATH=$PATH"` above ensures that the `PATH` env variable set in 
+the regular user context gets exported to `sudo` environment.
 
 Next, start the simulator with your deployment manifest template using the
 following command:
