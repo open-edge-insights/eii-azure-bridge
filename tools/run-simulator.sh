@@ -82,5 +82,5 @@ python3 ./tools/serialize_eis_config.py ./$deployment $eis_config
 check_error "Failed to populate EIS configuration into Azure manifest"
 
 log_info "Running simulator"
-sudo -H -E -u $USER iotedgehubdev start -d ${PWD}/config/$deployment_name.amd64.json -v
+sudo -H -E -u $USER  env "PATH=$PATH" iotedgehubdev start -d ${PWD}/config/$deployment_name.amd64.json -v
 check_error "Failed to run simulator"
