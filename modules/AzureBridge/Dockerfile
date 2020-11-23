@@ -49,4 +49,6 @@ COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python
 
 COPY . .
 
+HEALTHCHECK NONE
+
 CMD ["python3.6", "-u", "main.py"]

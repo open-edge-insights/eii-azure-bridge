@@ -31,4 +31,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
+HEALTHCHECK NONE
+
 CMD [ "python3", "-u", "./main.py" ]

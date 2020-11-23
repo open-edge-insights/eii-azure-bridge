@@ -38,6 +38,12 @@ services:
                 EIS_USER_NAME: ${EIS_USER_NAME}
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         ipc: "none"
+        security_opt:
+        - no-new-privileges
+        healthcheck:
+          test: ["CMD-SHELL", "exit", "0"]
+          interval: 5m
+
         environment:
             AppName: "EISAzureBridge"
             CertType: "zmq"
@@ -54,3 +60,9 @@ services:
                 EIS_UID: ${EIS_UID}
                 EIS_USER_NAME: ${EIS_USER_NAME}
         ipc: "none"
+        security_opt:
+        - no-new-privileges
+        healthcheck:
+          test: ["CMD-SHELL", "exit", "0"]
+          interval: 5m
+        
