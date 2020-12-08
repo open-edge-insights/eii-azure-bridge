@@ -958,7 +958,7 @@ host filesystem, then you must do the following:
     following command:
 
     ```sh
-    $ sudo ls -l /opt/intel/eis/data/azure_blob_storage/BlockBlob/
+    $ sudo ls -l /opt/intel/eis/data/azure-blob-storage/BlockBlob/
     ```
 
     In that directory, you will see a folder for each container. Inside that directory
