@@ -14,6 +14,8 @@
                     "PROFILING_MODE=$PROFILING_MODE",
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST",
                     "ETCD_HOST=$ETCD_HOST",
+                    "GENICAM=Matrix_Vision",
+                    "GST_DEBUG=1,gencamsrc:1",
                     "CertType=zmq",
                     "AML_TENANT_ID=$AML_TENANT_ID",
                     "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
