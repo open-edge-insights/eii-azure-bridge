@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-"""EIS Azure Bridge EMB subscriber async functions.
+"""EII Azure Bridge EMB subscriber async functions.
 """
 import json
 import asyncio
@@ -30,10 +30,10 @@ from azure.core.exceptions import ResourceExistsError
 
 
 async def subscriber_recv(loop, subscriber):
-    """Receive a message from a subscriber on the EIS Message Bus.
+    """Receive a message from a subscriber on the EII Message Bus.
 
     :param loop: asyncio loop
-    :param subscriber: EIS Message Bus Subscriber
+    :param subscriber: EII Message Bus Subscriber
     """
     recv = loop.run_in_executor(None, subscriber.recv)
     msg = await recv
@@ -74,14 +74,14 @@ async def upload_frame_done(fut):
 
 
 async def emb_subscriber_listener(bs, subscriber, output_name, container_name):
-    """EIS Message Bus asyncio subscriber listener.
+    """EII Message Bus asyncio subscriber listener.
 
-    This will resend the meta-data received from EIS onto the MSFT IoT Edge
+    This will resend the meta-data received from EII onto the MSFT IoT Edge
     Runtime bus using the given output name. The output name must be a
     specified output route for the module when deployed via the IoT Edge
     Runtime.
 
-    :param subscriber: EIS Message Bus subscriber
+    :param subscriber: EII Message Bus subscriber
     :param container_name: Name of the Azure Blob container
     :param output_name: Output stream name
     """
@@ -106,7 +106,7 @@ async def emb_subscriber_listener(bs, subscriber, output_name, container_name):
     try:
         # Loop forever receiving messages
         while True:
-            log.debug('Waiting for message from the EIS Message Bus')
+            log.debug('Waiting for message from the EII Message Bus')
             msg = await subscriber_recv(loop, subscriber)
 
             meta = msg.get_meta_data()

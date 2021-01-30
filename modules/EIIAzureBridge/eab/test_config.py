@@ -29,7 +29,7 @@ class MockConfigManagerClient:
     """Mock object for the configuration manager.
 
     .. note:: This only mocks the APIs of the configuration manager ETCD client
-        which the configuration utilities in the EIS Azure Bridge uses.
+        which the configuration utilities in the EII Azure Bridge uses.
     """
     def __init__(self, mock_config):
         """Constructor.
@@ -139,23 +139,23 @@ class TestConfigUtils(unittest.TestCase):
     def test_get_msgbus_config(self):
         """Test the :code:`eab.config.get_msgbus_config()` method.
         """
-        app_name = 'EISAzureBridge'
+        app_name = 'EIIAzureBridge'
 
         # Set environmental variables for retrieving TCP and IPC configurations
         # This simulates connections to both VI and VA
         os.environ['SubTopics'] = ('VideoIngestion/camera1_stream,'
                                    'VideoAnalytics/camera1_stream_results')
-        os.environ['camera1_stream_cfg'] = 'zmq_ipc,/EIS/sockets'
+        os.environ['camera1_stream_cfg'] = 'zmq_ipc,/EII/sockets'
         os.environ['camera1_stream_results_cfg'] = 'zmq_tcp,127.0.0.1:65013'
 
-        # Define mock production EIS config
+        # Define mock production EII config
         prod_config = {
             '/Publickeys/VideoAnalytics': 'TEST-VA-CLIENT-KEY',
             f'/Publickeys/{app_name}': 'TEST-APP-CLIENT-KEY',
             f'/{app_name}/private_key': 'TEST-APP-CLIENT-SECRET'
         }
 
-        # Define mock dev mode EIS config
+        # Define mock dev mode EII config
         # This is empty, because the util should not try to retrieve anything
         # from the config manager in this case
         dev_config = {}
@@ -165,7 +165,7 @@ class TestConfigUtils(unittest.TestCase):
         # NOTE: IPC config should be the same for prod and dev mode
         expected_ipc_config = {
             'type': 'zmq_ipc',
-            'socket_dir': '/EIS/sockets'
+            'socket_dir': '/EII/sockets'
         }
 
         expected_prod_tcp_config = {

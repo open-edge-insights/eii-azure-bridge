@@ -10,7 +10,7 @@
                         "minDockerVersion": "v1.25",
                         "loggingOptions": "",
                         "registryCredentials": {
-                            "eisazbridgectrregistry": {
+                            "eiiazbridgectrregistry": {
                                 "username": "$AZ_CONTAINER_REGISTRY_USERNAME",
                                 "password": "$AZ_CONTAINER_REGISTRY_PASSWORD",
                                 "address": "$AZ_CONTAINER_REGISTRY"

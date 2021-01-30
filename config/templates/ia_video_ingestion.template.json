@@ -5,7 +5,7 @@
         "status": "running",
         "restartPolicy": "always",
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_video_ingestion:$EIS_VERSION",
+            "image": "${DOCKER_REGISTRY}ia_video_ingestion:$EII_VERSION",
             "createOptions": {
                 "Hostname": "ia_video_ingestion",
                 "Env": [
@@ -23,7 +23,7 @@
                 ],
                 "Volumes": {
                     "/dev": {},
-                    "/EIS/sockets": {},
+                    "/EII/sockets": {},
                     "/var/tmp": {}
                 },
                 "NetworkingConfig": {
@@ -48,7 +48,7 @@
                     ],
                     "Binds": [
                         "/dev:/dev:rw",
-                        "$EIS_INSTALL_PATH/sockets:/EIS/sockets:rw",
+                        "$EII_INSTALL_PATH/sockets:/EII/sockets:rw",
                         "/var/tmp:/var/tmp:rw"
                     ],
                     "LogConfig": {
@@ -58,19 +58,19 @@
                     "Mounts": [
                         {
                             "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EIS_CERTIFICATES/ca/ca_certificate.pem",
+                            "Source": "$EII_CERTIFICATES/ca/ca_certificate.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
                         {
                             "Target": "/run/secrets/etcd_VideoIngestion_cert",
-                            "Source": "$EIS_CERTIFICATES/VideoIngestion/VideoIngestion_client_certificate.pem",
+                            "Source": "$EII_CERTIFICATES/VideoIngestion/VideoIngestion_client_certificate.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
                         {
                             "Target": "/run/secrets/etcd_VideoIngestion_key",
-                            "Source": "$EIS_CERTIFICATES/VideoIngestion/VideoIngestion_client_key.pem",
+                            "Source": "$EII_CERTIFICATES/VideoIngestion/VideoIngestion_client_key.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         }

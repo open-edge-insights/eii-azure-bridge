@@ -2,7 +2,7 @@
   "$schema-version": "0.0.1",
   "description": "",
   "image": {
-    "repository": "$AZ_CONTAINER_REGISTRY/eisazsimplesubscriber",
+    "repository": "$AZ_CONTAINER_REGISTRY/eiiazsimplesubscriber",
     "tag": {
       "version": "0.0.1",
       "platforms": {

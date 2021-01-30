@@ -1,59 +1,59 @@
-# EIS Azure Bridge
+# EII Azure Bridge
 
 > **NOTE:** The source code for this project must be placed under the `IEdgeInsights`
-> directory in the source code for EIS for the various scripts and commands in
+> directory in the source code for EII for the various scripts and commands in
 > this README to work.
 
-The EIS Azure Bridge serves as a connector between EIS and the Microsoft
+The EII Azure Bridge serves as a connector between EII and the Microsoft
 Azure IoT Edge Runtime ecosystem. It does this by allowing the following
 forms of bridging:
 
-* Publishing of incoming data from EIS onto the Azure IoT Edge Runtime bus
-* Storage of incoming images from the EIS video analytics pipeline into a
+* Publishing of incoming data from EII onto the Azure IoT Edge Runtime bus
+* Storage of incoming images from the EII video analytics pipeline into a
     local instance of the Azure Blob Storage service
-* Translation of configuration for EIS from the Azure IoT Hub digital twin
-    for the bridge into ETCD via the EIS Configuration Manager APIs
+* Translation of configuration for EII from the Azure IoT Hub digital twin
+    for the bridge into ETCD via the EII Configuration Manager APIs
 
 This code base is structured as an Azure IoT Edge Runtime module. It includes:
 
-* Deployment templates for deploying the EIS video analytics pipeline with the
+* Deployment templates for deploying the EII video analytics pipeline with the
     bridge on top of the Azure IoT Edge Runtime
-* The EIS Azure Bridge module
+* The EII Azure Bridge module
 * A simple subscriber on top of the Azure IoT Edge Runtime for showcasing the
     end-to-end transmission of data
 * Various utilities and helper scripts for deploying and developing on the
-    EIS Azure Bridge
+    EII Azure Bridge
 
-The following sections will cover the configuration/usage of the EIS Azure
-Bridge, the deployment of EIS on the Azure IoT Edge Runtime, as well as the
+The following sections will cover the configuration/usage of the EII Azure
+Bridge, the deployment of EII on the Azure IoT Edge Runtime, as well as the
 usage of the tools and scripts included in this code base for development.
 
 > **NOTE:** The following sections assume an understanding of the configuration
-> for EIS. It is recommended that you read the main README and User Guide for
-> EIS prior to using this service.
+> for EII. It is recommended that you read the main README and User Guide for
+> EII prior to using this service.
 
 ## Pre-Requisites / Setup
 
-To use and develop with the EIS Azure Bridge there are a few steps which must
+To use and develop with the EII Azure Bridge there are a few steps which must
 be taken to configure your environment. The setup must be done to configure
 your Azure Cloud account, your development system, and also the node which
-you are going to deploy the EIS Azure Bridge on.
+you are going to deploy the EII Azure Bridge on.
 
 The following sections cover the setup for the first two environments listed.
 Setting up your system for a single-node deployment will be covered in the
 [Single-Node Azure IoT Edge Deployment](#single-node-dep) section below.
 
 > **NOTE:** When you deploy with Azure IoT Hub you will also need to configure
-> the Azure IoT Edge Runtime and EIS on your target device.
+> the Azure IoT Edge Runtime and EII on your target device.
 
 ### <a name="az-cloud-setup"></a>Azure Cloud Setup
 
-Prior to using the EIS Azure Bridge there are a few cloud services in Azure
+Prior to using the EII Azure Bridge there are a few cloud services in Azure
 which must be initialized.
 
 Primarily, you need an Azure Containter Registry instance, an Azure IoT Hub,
 as well as an Azure IoT Device. Additionally, if you wish to use the sample ONNX
-UDF in EIS to download a ML/DL model from AzureML, then you must follow a few
+UDF in EII to download a ML/DL model from AzureML, then you must follow a few
 steps to get this configured as well. For these steps, see the [Setting up AzureML](#setting-up-azureml)
 section below.
 
@@ -80,7 +80,7 @@ instructions below.
 
 #### Setting up AzureML
 
-To use the sample EIS ONNX UDF, you must do the following:
+To use the sample EII ONNX UDF, you must do the following:
 
 1. Create an AzureML Workspace (see [these](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-manage-workspace)
     instructions provided by Microsoft)
@@ -98,7 +98,7 @@ $ az ad sp create-for-rbac --sdk-auth --name ml-auth
 
 After executing this command you will see a JSON blob printed to your console
 window. Save the `clientId`, `clientSecret`, `subscriptionId`, and `tenantId`
-for configuring the sample ONNX EIS UDF later.
+for configuring the sample ONNX EII UDF later.
 
 ##### Pushing a Model to AzureML
 
@@ -116,19 +116,19 @@ Also, you can find pre-trained models in the [ONNX Model Zoo](https://github.com
 
 The development system will be used for the following actions:
 
-* Building and pushing the EIS containers (including the bridge) to your Azure Container Registry
+* Building and pushing the EII containers (including the bridge) to your Azure Container Registry
 * Creating your Azure IoT Hub deployment manifest
 * Deploying your manifest to a single node
 
 For testing purposes, your development system can serve to do the actions detailed
 above, as well as being the device you use for your single-node deployment. This
 should not be done in a production environment, but it can be helpful when
-familiarizing yourself with the EIS Azure Bridge.
+familiarizing yourself with the EII Azure Bridge.
 
-First, setup your system for building EIS. To do this, follow the instructions
-detailed in the main EIS README and the EIS User Guide. At the end, you should
-have installed Docker, Docker Compose, and other EIS Python dependencies for
-the EIS Builder script in the `../build/` directory.
+First, setup your system for building EII. To do this, follow the instructions
+detailed in the main EII README and the EII User Guide. At the end, you should
+have installed Docker, Docker Compose, and other EII Python dependencies for
+the EII Builder script in the `../build/` directory.
 
 Once this is completed, install the required components to user the Azure CLI
 and development tools. The script `./tools/install-dev-tools.sh` automates this
@@ -174,52 +174,52 @@ $ az acr login --name <ACR Name>
 **IMPORTANT NOTE:**
 
 Please see the list of supported services at the end of this README for the
-services which can be pushed to an ACR instance. Not all EIS services are
-supported by and validated to work with the EIS Azure Bridge.
+services which can be pushed to an ACR instance. Not all EII services are
+supported by and validated to work with the EII Azure Bridge.
 
-## <a name="eis-build-push"></a>Build and Push EIS Containers
+## <a name="eii-build-push"></a>Build and Push EII Containers
 
-> **NOTE:** By following the steps below, the EIS Azure Bridge and Simple
+> **NOTE:** By following the steps below, the EII Azure Bridge and Simple
 > Subscriber Azure IoT Modules will be pushed to your ACR instance as well.
 
-After setting up your development system, build and push the EIS containers
-to your Azure Contianer Registry instance. Note that the EIS Azure Bridge only
-supports a few of the EIS services currently. Before building and pushing your
-EIS containers, be sure to look at the [Supported EIS Services](#supported-eis-services)
+After setting up your development system, build and push the EII containers
+to your Azure Contianer Registry instance. Note that the EII Azure Bridge only
+supports a few of the EII services currently. Before building and pushing your
+EII containers, be sure to look at the [Supported EII Services](#supported-eii-services)
 section below, so as to not build/push uneeded containers to your registry.
 
-To do this go to the `../build/` directory in the EIS source code, modify the
+To do this go to the `../build/` directory in the EII source code, modify the
 `DOCKER_REGISTRY` variable in the `../build/.env` file to point to your Azure
 Container Registry.
 
 Next, execute the following commands:
 
 ```sh
-$ python3 eis_builder.py -f video-streaming-azure.yml
+$ python3 eii_builder.py -f video-streaming-azure.yml
 $ docker-compose build
 $ docker-compose push
 ```
 
-For more detailed instructions on this process, see the EIS README and User Guide.
+For more detailed instructions on this process, see the EII README and User Guide.
 
 ## <a name="single-node-dep"></a>Single-Node Azure IoT Edge Deployment
 
-> **NOTE:** Outside of the Azure ecosystem, EIS can be deployed and communicate
-> across nodes. In the Azure IoT Edge ecosystem this is not possible with EIS.
-> All EIS services must be running on the same edge node. However, you can
-> deploy EIS on multiple nodes, but intercommunication between the nodes will
+> **NOTE:** Outside of the Azure ecosystem, EII can be deployed and communicate
+> across nodes. In the Azure IoT Edge ecosystem this is not possible with EII.
+> All EII services must be running on the same edge node. However, you can
+> deploy EII on multiple nodes, but intercommunication between the nodes will
 > not work.
 
 > **IMPORTANT NOTE:**
-> If you are using TCP communication between VI or VA and the EIS Azure Bridge,
+> If you are using TCP communication between VI or VA and the EII Azure Bridge,
 > then you must modify the `AllowedClients` list under the `Publishers` section
-> of the interfaces configuration of VI or VA to include `EISAzureBridge`.
+> of the interfaces configuration of VI or VA to include `EIIAzureBridge`.
 > This must be done prior to provisioning to that the proper certificates will
 > be generated to encrypt/authenticate connections.
 
 In the Azure IoT ecosystem you can deploy to single-nodes and you can do bulk
-deployments. This section will cover how to deploy the EIS Azure Bridge and
-associated EIS services to a single Linux edge node. For more details on deploying
+deployments. This section will cover how to deploy the EII Azure Bridge and
+associated EII services to a single Linux edge node. For more details on deploying
 modules at scale with the Azure IoT Edge Runtime, see
 [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-monitor)
 
@@ -227,22 +227,22 @@ Note that this section will give a high-level overview of how to deploy the
 modules with the Azure CLI. For more information on developing and deploying
 Azure modules, see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/tutorial-develop-for-linux).
 
-The deloyment of the Azure IoT Edge and the EIS modules can be broken down into
+The deloyment of the Azure IoT Edge and the EII modules can be broken down into
 the following steps:
 
 1. Provisioning
-2. Configuring EIS
+2. Configuring EII
 3. Configuring Azure IoT Deployment Manifest
 4. Deployment
 
 Prior to deploying a single Azure IoT Edge node you must have already
 configured your Azure cloud instance (see instructions in the [Azure Cloud Setup](#az-cloud-setup)
-section). Additionally, you need to have already built and pushed the EIS services to your
-Azure Container Registry (follow the instructions in the [Build and Push EIS Containers](#eis-build-push)
+section). Additionally, you need to have already built and pushed the EII services to your
+Azure Container Registry (follow the instructions in the [Build and Push EII Containers](#eii-build-push)
 section).
 
 Provided you have met these two prerequisites, follow the steps below to do a
-single node deployment with the EIS Azure Bridge on the Azure IoT Edge Runtime.
+single node deployment with the EII Azure Bridge on the Azure IoT Edge Runtime.
 
 ### Step 1 - Provisioning
 
@@ -257,34 +257,34 @@ First, you must then install the Azure IoT Edge Runtime on your target deploymen
 system. To do that, follow the instructions provided by Microsoft in
 [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux).
 
-Next, you must provision EIS on your target deployment system. Follow the instructions
-provided in the EIS READMEs/User Guide for completing this process.
+Next, you must provision EII on your target deployment system. Follow the instructions
+provided in the EII READMEs/User Guide for completing this process.
 
-While provisioning EIS on your system, note that you only need to setup the
+While provisioning EII on your system, note that you only need to setup the
 Video Ingesiton and/or the Video Analytics containers. All other services are
-not supported by the EIS Azure Bridge currently.
+not supported by the EII Azure Bridge currently.
 
 Be sure to note down which directory you generate your certificates into, this
-will be important later. Unless, you are running EIS in dev mode, in that case
+will be important later. Unless, you are running EII in dev mode, in that case
 you will have no certificates generated.
 
 **IMPORTANT NOTE:**
 
-If you previously installed EIS outside of Azure on your system, then make sure
-that all of the EIS containers have been stopped. You can do this by going to
-the `build/` directory in the EIS source code and running the following command:
+If you previously installed EII outside of Azure on your system, then make sure
+that all of the EII containers have been stopped. You can do this by going to
+the `build/` directory in the EII source code and running the following command:
 
 ```sh
 $ docker-compose down
 ```
 
-This will stop and remove all of the previously running EIS containers, allowing
-the EIS Azure Bridge to run successfully.
+This will stop and remove all of the previously running EII containers, allowing
+the EII Azure Bridge to run successfully.
 
 #### Expected Result
 
 When you have completed these steps, you should have the Azure IoT Edge Runtime
-installed (which includes Docker), and you should have the `ia_etcd` EIS container
+installed (which includes Docker), and you should have the `ia_etcd` EII container
 running on your system.
 
 To confirm this, run the `docker ps` command. Your output should look similar to
@@ -296,23 +296,23 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 75121173d4d8        ia_etcd:2.3         "./start_etcd.sh"   11 days ago         Up 2 seconds                            ia_etcd
 ```
 
-### Step 2 - Configuring EIS
+### Step 2 - Configuring EII
 
 This step should be done from your development system, and not the edge node you
-are deploying EIS onto. The configuration you will do during this setup will
-allow your system to deploy EIS to your edge node. As noted earlier, for development
+are deploying EII onto. The configuration you will do during this setup will
+allow your system to deploy EII to your edge node. As noted earlier, for development
 and testing purposes this could be the same system as your targeted edge device,
 but this is not recommended in a production environment.
 
-To configure EIS, modify the `build/provision/config/eis_config.json` file. This
-should have been generated when the `build/eis_builder.py` script was executed
-when building/pushing the EIS containers to your ACR instance. If it does not
-exist, run this script based on the instructions provided in the EIS README.
+To configure EII, modify the `build/provision/config/eii_config.json` file. This
+should have been generated when the `build/eii_builder.py` script was executed
+when building/pushing the EII containers to your ACR instance. If it does not
+exist, run this script based on the instructions provided in the EII README.
 
 Next, configure the `build/.env` file. You must make sure to modify the following
 values in the `.env` file:
 
-* `DOCKER_REGISTRY` - This should have been set when building/pushing the EIS
+* `DOCKER_REGISTRY` - This should have been set when building/pushing the EII
     containers to your ACR instance. Make sure it is set to the URL for your
     ACR instance.
 * `HOST_IP` - This must be the IP address of the edge node you are deploying
@@ -321,10 +321,10 @@ values in the `.env` file:
 * `DEV_MODE` - Set this to the same value you used when provisioning your edge node
     in the previous step
 
-Next, in the `EISAzureBridge/` source directory, modify the `.env` file. Make
+Next, in the `EIIAzureBridge/` source directory, modify the `.env` file. Make
 sure to set the following values:
 
-* `EIS_CERTIFICATES`              - The directory with the EIS certificates on your edge system
+* `EII_CERTIFICATES`              - The directory with the EII certificates on your edge system
 * `AZ_CONTAINER_REGISTY_USERNAME` - User name for the container registry login (obtained during creation)
 * `AZ_CONTAINER_REGISTY_PASSWORD` - Password for the container registry login (obtained during creation)
     * **IMPORTANT NOTE:** Make sure to surround the password in single quotes, i.e. `'`, because bash
@@ -340,20 +340,20 @@ your deployment manifest leading to configuration errors.
 
 **IMPORTANT NOTE #2:**
 
-If you wish to use the sample EIS ONNX UDF, now is the time to configure the UDF
-to run. See the [Sample EIS ONNX UDF](#sample-eis-onnx-udf) configuration section
+If you wish to use the sample EII ONNX UDF, now is the time to configure the UDF
+to run. See the [Sample EII ONNX UDF](#sample-eii-onnx-udf) configuration section
 below for how to configure the UDF.
 
 #### Expected Result
 
 Once the following step has been completed, then you should have correctly configured
-`.env` files to deploying EIS via Azure. If some of the values were incorrect, then
+`.env` files to deploying EII via Azure. If some of the values were incorrect, then
 you will encounter issues in the proceeding steps.
 
 ### Step 3 - Configuring Azure IoT Deployment Manifest
 
-Once you have your target edge system provisioned and EIS configured, you need to
-create your Azure IoT Hub deployment manifest. The EIS Azure Bridge provides some
+Once you have your target edge system provisioned and EII configured, you need to
+create your Azure IoT Hub deployment manifest. The EII Azure Bridge provides some
 convenience scripts to ease this process.
 
 > **NOTE:** These steps should be done from your development system setup in
@@ -363,28 +363,28 @@ convenience scripts to ease this process.
 To generate your deployment manifest template, execute the following command:
 
 ```sh
-$ ./tools/generate-deployment-manifest.sh example EISAzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
+$ ./tools/generate-deployment-manifest.sh example EIIAzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
 ```
 
 > **NOTE:** If you are using Azure Blob Storage, include `AzureBlobStorageonIoTEdge`
 > in the argument list above.
 
 > **NOTE:** When you run the command above, it will pull some values from your
-> EIS `build/.env` file. If the `build/.env` file is configured incorrectly,
+> EII `build/.env` file. If the `build/.env` file is configured incorrectly,
 > you may run into issues.
 
 The above command will generate two files: `./example.template.json` and
 `config/example.amd64.json`. The first is a deployment template, and the second
 is the fully populated/generated configuration for Azure IoT Hub. In executing
-the script above, you should have a manifest which includes the EIS Azure Bridge,
-Simple Subscriber, as well as the EIS video ingestion service.
+the script above, you should have a manifest which includes the EII Azure Bridge,
+Simple Subscriber, as well as the EII video ingestion service.
 
 The list of services given to the bash script can be changed if you wish to
 run different services.
 
 You may want/need to modify your `./example.template.json` file after running
 this command. This could be because you wish to change the topics that VI/VA use
-or because you want to configure the EIS Azure Bridge in some different way. If you
+or because you want to configure the EII Azure Bridge in some different way. If you
 modify this file, you must regenerate the `./config/example.amd64.json` file.
 To do this, execute the following command:
 
@@ -392,28 +392,28 @@ To do this, execute the following command:
 $ iotedgedev genconfig -f example.template.json
 ```
 
-If you wish to modify your `eis_config.json` file after generating your template,
-you can re-add this to the EIS Azure Bridge digital twin by running the following
+If you wish to modify your `eii_config.json` file after generating your template,
+you can re-add this to the EII Azure Bridge digital twin by running the following
 command:
 
 ```sh
-$ python3 tools/serialize_eis_config.py example.template.json ../build/provision/config/eis_config.json
+$ python3 tools/serialize_eii_config.py example.template.json ../build/provision/config/eii_config.json
 ```
 
 **IMPORTANT NOTE:**
 
-If you wish to have the EISAzureBridge subscribe and bridge data over an IPC
+If you wish to have the EIIAzureBridge subscribe and bridge data over an IPC
 socket coming from either Video Ingestion or Video Analytics, then you must
-change the user which the container operates under. By default, the EISAzureBridge
-container is configured to run as the `eisuser` created during the installation of
-EIS on your edge system. Both Video Ingestion and Video Analytics operate as root
+change the user which the container operates under. By default, the EIIAzureBridge
+container is configured to run as the `eiiuser` created during the installation of
+EII on your edge system. Both Video Ingestion and Video Analytics operate as root
 in order to access various accelerators on your system. This results in the
 IPC sockets for the communication with these modules being created as root. To
-have the EISAzureBridge subscribe it must also run as root. To change this, do
+have the EIIAzureBridge subscribe it must also run as root. To change this, do
 the following steps:
 
 1. Open your deployment manifest template
-2. Under the following JSON key path: `modulesContent/modules/EISAzureBridge/settings/createOptions`
+2. Under the following JSON key path: `modulesContent/modules/EIIAzureBridge/settings/createOptions`
     delete the `User` key
 
 This will cause the container to be launched as `root` by default allowing you to
@@ -446,10 +446,10 @@ failure.
 #### Expected Results
 
 Provided all of the setups above ran correctly, your edge node should now be running
-your Azure IoT Edge modules, the EIS Azure Bridge, and the EIS services you
+your Azure IoT Edge modules, the EII Azure Bridge, and the EII services you
 selected.
 
-It is possible that for the EIS Azure Bridge (and any Python Azure IoT Edge modules)
+It is possible that for the EII Azure Bridge (and any Python Azure IoT Edge modules)
 you will see that the service crashes the first couple of times it attempts to come
 up on your edge system with an exception similar to the following:
 
@@ -504,8 +504,8 @@ the security in your deployments.
 
 ## Configuration
 
-The configuration of the EIS Azure Bridge is a mix of the configuration for the
-EIS services, the EIS Azure Bridge module, and configuration for the other
+The configuration of the EII Azure Bridge is a mix of the configuration for the
+EII services, the EII Azure Bridge module, and configuration for the other
 Azure IoT Edge Modules (i.e. the Simple Subscriber, and the Azure Blob Storage
 modules). All of this configuration is wrapped up into your deployment manifest
 for Azure IoT Hub.
@@ -513,22 +513,22 @@ for Azure IoT Hub.
 The following sections cover the configuration of the aforementioned servies
 and then the generation of your Azure Deployment manifest.
 
-### EIS Azure Bridge
+### EII Azure Bridge
 
-The EIS Azure Bridge spans EIS and Azure IoT Edge Runtime environments, as such
-its configuration is a mix of EIS configuration and Azure IoT Edge module configuration
+The EII Azure Bridge spans EII and Azure IoT Edge Runtime environments, as such
+its configuration is a mix of EII configuration and Azure IoT Edge module configuration
 properties. The configuration of the bridge is split between environmental
 variables specified in your Azure IoT Hub deployment manifest and the module's
-digital twin. Additionally, the digital twin for the EIS Azure Bridge module
-contains the entire configuration for the EIS services running in your edge
+digital twin. Additionally, the digital twin for the EII Azure Bridge module
+contains the entire configuration for the EII services running in your edge
 environment.
 
-The configuration of the EIS Message Bus is done in a method similar to that of
-the other EIS services, such as the Video Analytics service. To provided the
+The configuration of the EII Message Bus is done in a method similar to that of
+the other EII services, such as the Video Analytics service. To provided the
 configuration for the topics which the bridge should subscribe to,
-you must set the `Subscribers` list in the [modules/EISAzureBridge/config.json](./modules/EISAzureBridge/config.json)
+you must set the `Subscribers` list in the [modules/EIIAzureBridge/config.json](./modules/EIIAzureBridge/config.json)
 file. The list is comprised of JSON objects for every subscription you wish the
-EIS Azure Bridge to establish. Below is an example of the configuration for
+EII Azure Bridge to establish. Below is an example of the configuration for
 subscribing to the the publications coming from the Video Analytics container.
 
 ```javascript
@@ -548,12 +548,12 @@ subscribing to the the publications coming from the Video Analytics container.
             "EndPoint": "127.0.0.1:65013",
 
             // Specification of the AppName of the service publishing the
-            // messages. This allows the EIS Azure Bridge to get the needed
+            // messages. This allows the EII Azure Bridge to get the needed
             // authentication keys to subscribe
             "PublisherAppName": "VideoAnalytics",
 
             // Specifies the list of all of the topics which the
-            // EISAzureBridge shall subscribe to
+            // EIIAzureBridge shall subscribe to
             "Topics": [
                 "camera1_stream_results"
             ]
@@ -563,19 +563,19 @@ subscribing to the the publications coming from the Video Analytics container.
 ```
 
 There are a few important implications to be aware of for both ZeroMQ TCP and IPC
-subscribers over the EIS Message Bus. These implications are specified below.
+subscribers over the EII Message Bus. These implications are specified below.
 
 **ZeroMQ TCP Subscription Implications**
 
 For ZeroMQ TCP subscribers, like the example shown above, the `EndPoint` in
 the subscriber's configuration object has to be overridden through an
-environmental variable. The reason for this, is that the EIS Azure Bridge
+environmental variable. The reason for this, is that the EII Azure Bridge
 service runs attached to a bridged Docker network created by the Azure IoT
-Edge Runtime, whereas the other EIS services run on the host's network. In
-order to subscribe, the EIS Azure Bridge must use the host's IP address to
+Edge Runtime, whereas the other EII services run on the host's network. In
+order to subscribe, the EII Azure Bridge must use the host's IP address to
 connect.
 
-If the EIS Azure Bridge is only subscribing to a single service, then the
+If the EII Azure Bridge is only subscribing to a single service, then the
 `EndPoint` can be overridden by setting the `SUBSCRIBER_ENDPOINT` environmental
 variable. The environmental variable changes if there are multiple subscribers.
 For instance, if the configuration example had another object in the Subscribers
@@ -590,33 +590,33 @@ IP address is the variable `$HOST_IP`. This will be pulled from the `.env` file
 when generating your deployment manifest.
 
 The final implication is on the configuration of the services which the
-EIS Azure Bridge is subscribing to. Most EIS services publishing over TCP set
+EII Azure Bridge is subscribing to. Most EII services publishing over TCP set
 their host to `127.0.0.1`. This keeps the communication only available to
 subscribers which are on the local host network on the system. In order for
-the EIS Azure Bridge to subscribe to these publications this must be changed
+the EII Azure Bridge to subscribe to these publications this must be changed
 to `0.0.0.0`.
 
 This can be accomplished by overridding the service's publisher `EndPoint`
-configuration via environmental variables, just like with the EIS Azure Bridge
-service. For each service which the EIS Azure Bridge needs to subscribe to over
+configuration via environmental variables, just like with the EII Azure Bridge
+service. For each service which the EII Azure Bridge needs to subscribe to over
 TCP, add the environmental variable `PUBLISHER_ENDPOINT=0.0.0.0:<PORT>` to the
 environmental variable configuration of the serivce's module configuration in
 your deployment manifest (note: be sure to replace the port).  Or if there are
 multiple topics being published, use the variable `PUBLISHER_<Name>_ENDPOINT`.
 
-These variables have already been set for to have the EIS Azure Bridge subscribe
+These variables have already been set for to have the EII Azure Bridge subscribe
 to a single instance of the Video Analytics service. This configuration can be
-seen in your deployment manifest under the, "EISAzureBridge", and, "ia_video_analytics",
+seen in your deployment manifest under the, "EIIAzureBridge", and, "ia_video_analytics",
 modules. Or, you can see this configuration being set in the,
 "config/templates/ia_video_analytics.template.json", and,
-"config/templates/EISAzureBridge.template.json", files.
+"config/templates/EIIAzureBridge.template.json", files.
 
 **ZeroMQ IPC Subscription Implications**
 
-If EISAzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure that
-* EISAzureBridge app's subscriber interfaces configuration matches to that of the 
-  publisher app's publisher interfaces configuration in `build/provision/config/eis_config.json`
-  file.  Below is an example of the EISAzureBridge interface configuration subscribing to the 
+If EIIAzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure that
+* EIIAzureBridge app's subscriber interfaces configuration matches to that of the 
+  publisher app's publisher interfaces configuration in `build/provision/config/eii_config.json`
+  file.  Below is an example of the EIIAzureBridge interface configuration subscribing to the 
   publications coming from the VideoIngestion container.
   
   ```javascript
@@ -632,15 +632,15 @@ If EISAzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure t
             // The EndPoint specifies the details of the connect, for an
             // IPC connection, this would be a JSON object with the
             // SocketDir key pointing to the directory of the IPC sockets
-            "EndPoint": "/EIS/sockets",
+            "EndPoint": "/EII/sockets",
 
             // Specification of the AppName of the service publishing the
-            // messages. This allows the EIS Azure Bridge to get the needed
+            // messages. This allows the EII Azure Bridge to get the needed
             // authentication keys to subscriber
             "PublisherAppName": "VideoIngestion",
 
             // Specifies the list of all of the topics which the
-            // EISAzureBridge shall subscribe to
+            // EIIAzureBridge shall subscribe to
             "Topics": [
                 "camera1_stream"
             ]
@@ -666,7 +666,7 @@ If EISAzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure t
 * Please follow `Step 4 - Deployment` above for deployment
   
 
-Below is an example digital twin for the EIS Azure Bridge:
+Below is an example digital twin for the EII Azure Bridge:
 
 ```json
 {
@@ -676,33 +676,33 @@ Below is an example digital twin for the EIS Azure Bridge:
             "az_output_topic": "camera1_stream_results"
         }
     },
-    "eis_config": "{\"/EISAzureBridge/config\": {}, \"/EISAzureBridge/interfaces\": {\"Subscribers\": [{\"EndPoint\": \"127.0.0.1:65013\", \"Name\": \"default\", \"PublisherAppName\": \"VideoAnalytics\", \"Topics\": [\"camera1_stream_results\"], \"Type\": \"zmq_tcp\"}]}, \"/EtcdUI/config\": {}, \"/EtcdUI/interfaces\": {}, \"/GlobalEnv/\": {\"C_LOG_LEVEL\": \"DEBUG\", \"ETCD_KEEPER_PORT\": \"7070\", \"GO_LOG_LEVEL\": \"INFO\", \"GO_VERBOSE\": \"0\", \"PY_LOG_LEVEL\": \"DEBUG\"}, \"/VideoAnalytics/config\": {\"encoding\": {\"level\": 95, \"type\": \"jpeg\"}, \"max_jobs\": 20, \"max_workers\": 4, \"queue_size\": 10, \"udfs\": [{\"device\": \"CPU\", \"model_bin\": \"common/udfs/python/pcb/ref/model_2.bin\", \"model_xml\": \"common/udfs/python/pcb/ref/model_2.xml\", \"name\": \"pcb.pcb_classifier\", \"ref_config_roi\": \"common/udfs/python/pcb/ref/roi_2.json\", \"ref_img\": \"common/udfs/python/pcb/ref/ref.png\", \"type\": \"python\"}]}, \"/VideoAnalytics/interfaces\": {\"Publishers\": [{\"AllowedClients\": [\"*\"], \"EndPoint\": \"0.0.0.0:65013\", \"Name\": \"default\", \"Topics\": [\"camera1_stream_results\"], \"Type\": \"zmq_tcp\"}], \"Subscribers\": [{\"EndPoint\": \"/EIS/sockets\", \"Name\": \"default\", \"PublisherAppName\": \"VideoIngestion\", \"Topics\": [\"camera1_stream\"], \"Type\": \"zmq_ipc\", \"zmq_recv_hwm\": 50}]}, \"/VideoIngestion/config\": {\"encoding\": {\"level\": 95, \"type\": \"jpeg\"}, \"ingestor\": {\"loop_video\": true, \"pipeline\": \"./test_videos/pcb_d2000.avi\", \"poll_interval\": 0.2, \"queue_size\": 10, \"type\": \"opencv\"}, \"max_jobs\": 20, \"max_workers\": 4, \"sw_trigger\": {\"init_state\": \"running\"}, \"udfs\": [{\"n_left_px\": 1000, \"n_right_px\": 1000, \"n_total_px\": 300000, \"name\": \"pcb.pcb_filter\", \"scale_ratio\": 4, \"training_mode\": \"false\", \"type\": \"python\"}]}, \"/VideoIngestion/interfaces\": {\"Publishers\": [{\"AllowedClients\": [\"VideoAnalytics\", \"Visualizer\", \"WebVisualizer\", \"TLSRemoteAgent\", \"RestDataExport\"], \"EndPoint\": \"/EIS/sockets\", \"Name\": \"default\", \"Topics\": [\"camera1_stream\"], \"Type\": \"zmq_ipc\"}], \"Servers\": [{\"AllowedClients\": [\"*\"], \"EndPoint\": \"127.0.0.1:66013\", \"Name\": \"default\", \"Type\": \"zmq_tcp\"}]}}"
+    "eii_config": "{\"/EIIAzureBridge/config\": {}, \"/EIIAzureBridge/interfaces\": {\"Subscribers\": [{\"EndPoint\": \"127.0.0.1:65013\", \"Name\": \"default\", \"PublisherAppName\": \"VideoAnalytics\", \"Topics\": [\"camera1_stream_results\"], \"Type\": \"zmq_tcp\"}]}, \"/EtcdUI/config\": {}, \"/EtcdUI/interfaces\": {}, \"/GlobalEnv/\": {\"C_LOG_LEVEL\": \"DEBUG\", \"ETCD_KEEPER_PORT\": \"7070\", \"GO_LOG_LEVEL\": \"INFO\", \"GO_VERBOSE\": \"0\", \"PY_LOG_LEVEL\": \"DEBUG\"}, \"/VideoAnalytics/config\": {\"encoding\": {\"level\": 95, \"type\": \"jpeg\"}, \"max_jobs\": 20, \"max_workers\": 4, \"queue_size\": 10, \"udfs\": [{\"device\": \"CPU\", \"model_bin\": \"common/udfs/python/pcb/ref/model_2.bin\", \"model_xml\": \"common/udfs/python/pcb/ref/model_2.xml\", \"name\": \"pcb.pcb_classifier\", \"ref_config_roi\": \"common/udfs/python/pcb/ref/roi_2.json\", \"ref_img\": \"common/udfs/python/pcb/ref/ref.png\", \"type\": \"python\"}]}, \"/VideoAnalytics/interfaces\": {\"Publishers\": [{\"AllowedClients\": [\"*\"], \"EndPoint\": \"0.0.0.0:65013\", \"Name\": \"default\", \"Topics\": [\"camera1_stream_results\"], \"Type\": \"zmq_tcp\"}], \"Subscribers\": [{\"EndPoint\": \"/EII/sockets\", \"Name\": \"default\", \"PublisherAppName\": \"VideoIngestion\", \"Topics\": [\"camera1_stream\"], \"Type\": \"zmq_ipc\", \"zmq_recv_hwm\": 50}]}, \"/VideoIngestion/config\": {\"encoding\": {\"level\": 95, \"type\": \"jpeg\"}, \"ingestor\": {\"loop_video\": true, \"pipeline\": \"./test_videos/pcb_d2000.avi\", \"poll_interval\": 0.2, \"queue_size\": 10, \"type\": \"opencv\"}, \"max_jobs\": 20, \"max_workers\": 4, \"sw_trigger\": {\"init_state\": \"running\"}, \"udfs\": [{\"n_left_px\": 1000, \"n_right_px\": 1000, \"n_total_px\": 300000, \"name\": \"pcb.pcb_filter\", \"scale_ratio\": 4, \"training_mode\": \"false\", \"type\": \"python\"}]}, \"/VideoIngestion/interfaces\": {\"Publishers\": [{\"AllowedClients\": [\"VideoAnalytics\", \"Visualizer\", \"WebVisualizer\", \"TLSRemoteAgent\", \"RestDataExport\"], \"EndPoint\": \"/EII/sockets\", \"Name\": \"default\", \"Topics\": [\"camera1_stream\"], \"Type\": \"zmq_ipc\"}], \"Servers\": [{\"AllowedClients\": [\"*\"], \"EndPoint\": \"127.0.0.1:66013\", \"Name\": \"default\", \"Type\": \"zmq_tcp\"}]}}"
 }
 ```
 
-> See the `modules/EISAzureBridge/config_schema.json` for the full JSON schema
-> for the digital twin of the EIS Azure Bridge module.
+> See the `modules/EIIAzureBridge/config_schema.json` for the full JSON schema
+> for the digital twin of the EII Azure Bridge module.
 
 Each key in the configuration above is described in the table below.
 
 |       Key       |                                              Description                                       |
 | :-------------: | ---------------------------------------------------------------------------------------------- |
-| `log_level`     | This is the logging level for the EIS Azure Bridge module, must be INFO, DEBUG, WARN, or ERROR |
-| `topics`        | Configuration for the topics to map from the EIS Message Bus into the Azure IoT Edge Runtime   |
-| `eis_config`    | Entire serialized configuration for EIS; this configuration will be placed in ETCD             |
+| `log_level`     | This is the logging level for the EII Azure Bridge module, must be INFO, DEBUG, WARN, or ERROR |
+| `topics`        | Configuration for the topics to map from the EII Message Bus into the Azure IoT Edge Runtime   |
+| `eii_config`    | Entire serialized configuration for EII; this configuration will be placed in ETCD             |
 
-You will notice that the `eis_config` is a serialized JSON string. This is due
+You will notice that the `eii_config` is a serialized JSON string. This is due
 to a limitation with the Azure IoT Edge Runtime. Currently, module digital twins
-do not support arrays; however, the EIS configuration requires array support. To
-workaround this limitation, the EIS configuration must be a serialized JSON
-string in the digital twin for the EIS Azure Bridge module.
+do not support arrays; however, the EII configuration requires array support. To
+workaround this limitation, the EII configuration must be a serialized JSON
+string in the digital twin for the EII Azure Bridge module.
 
-The `topics` value is a JSON object, where each key is a topic from the EIS Message
+The `topics` value is a JSON object, where each key is a topic from the EII Message
 Bus which will be re-published onto the Azure IoT Edge Runtime. The value for
 the topic key will be an additional JSON object, where there is one required
 key, `az_output_topic`, which is the topic on Azure IoT Edge Runtime to use and
 then an optional key, `az_blob_container_name`. This key specifies the Azure Blob
-Storage container to store the images from the EIS video analytics pipeline in.
+Storage container to store the images from the EII video analytics pipeline in.
 If the `az_blob_container_name` key is not specified, then the images will
 not be saved.
 
@@ -730,22 +730,22 @@ For more information on the name conventions/restrictions for Azure Blob Storage
 container names, see [this](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata)
 page of the Azure documentation.
 
-### Sample EIS ONNX UDF
+### Sample EII ONNX UDF
 
-EIS provides a sample UDF which utilizes the ONNX RT to execute your machine learning /
+EII provides a sample UDF which utilizes the ONNX RT to execute your machine learning /
 deep learning model. It also supports connecting to an AzureML Workspace to download
 the model and then run it. The source code for this UDF is in `common/video/udfs/python/sample_onnx/`.
 
-To use this UDF with EIS, you need to modify your `build/provision/config/eis_config.json`
+To use this UDF with EII, you need to modify your `build/provision/config/eii_config.json`
 configuration file to run the UDF in either your Video Ingesiton or Video Analytics
-instance. Then, you need to modify the environmental variables in the `EISAzureBridge/.env`
+instance. Then, you need to modify the environmental variables in the `EIIAzureBridge/.env`
 file to provide the connection information to enable the UDF to download your
 model from AzureML. Make sure to follow the instructions provided in the
 [Setting up AzureML](#setting-up-azureml) section above to configure your
 workspace correctly so that the UDF can download your model.
 
 The sample ONNX UDF requires that the following configuration values be set for
-the UDF in your `eis_config.json` file:
+the UDF in your `eii_config.json` file:
 
 |           Key         |                                      Value                                |
 | --------------------- | ------------------------------------------------------------------------- |
@@ -763,7 +763,7 @@ the following:
 
 ```javascript
 {
-    // ... omited rest of EIS configuration ...
+    // ... omited rest of EII configuration ...
 
     "udfs": [
         {
@@ -776,11 +776,11 @@ the following:
         }
     ]
 
-    // ... omited rest of EIS configuration ...
+    // ... omited rest of EII configuration ...
 }
 ```
 
-The following environmental variables must be set in the `EISAzureBridge/.env` file
+The following environmental variables must be set in the `EIIAzureBridge/.env` file
 in order to have the sample ONNX UDF download your model from an AzureML Workspace:
 
 |             Setting             |                      Description                  |
@@ -838,11 +838,11 @@ like the following:
 
 ### Simple Subscriber
 
-The Simple Subscriber module provided with the EIS Azure Bridge is a very simple
+The Simple Subscriber module provided with the EII Azure Bridge is a very simple
 service which only receives messages over the Azure IoT Edge Runtime and prints
 them to stdout. As such, there is no digital twin required for this module. The
 only configuration required is that a route be established in the Azure IoT Edge
-Runtime from the EIS Azure Bridge module to the Simple Subscriber module. This
+Runtime from the EII Azure Bridge module to the Simple Subscriber module. This
 routewill look something like the following in your deployment manifest:
 
 ```javascript
@@ -855,7 +855,7 @@ routewill look something like the following in your deployment manifest:
             "properties.desired": {
                 "schemaVersion": "1.0",
                 "routes": {
-                    "BridgeToSimpleSubscriber": "FROM /messages/modules/EISAzureBridge/outputs/camera1_stream INTO BrokeredEndpoint(\"/modules/SimpleSubscriber/inputs/input1\")"
+                    "BridgeToSimpleSubscriber": "FROM /messages/modules/EIIAzureBridge/outputs/camera1_stream INTO BrokeredEndpoint(\"/modules/SimpleSubscriber/inputs/input1\")"
                 },
                 "storeAndForwardConfiguration": {
                     "timeToLiveSecs": 7200
@@ -871,21 +871,21 @@ routewill look something like the following in your deployment manifest:
 For more information on establishing routes in the Azure IoT Edge Runtime,
 see [this documentation](https://docs.microsoft.com/en-us/azure/iot-edge/module-composition#declare-routes).
 
-### EIS ETCD Pre-Load
+### EII ETCD Pre-Load
 
-The configuration for EIS is given to the EIS Azure Bridge via the `eis_config`
-key in the module's digital twin. As specified in the EIS Azure Bridge configuration
+The configuration for EII is given to the EII Azure Bridge via the `eii_config`
+key in the module's digital twin. As specified in the EII Azure Bridge configuration
 section, this must be a serialized string. For the scripts included with the
-EIS Azure Bridge for generating your deployment manifest the ETCD pre-load
-configuration is stored at `config/eis_config.json`. See the EIS documentation
-for more information on populating this file with your desired EIS configuration.
+EII Azure Bridge for generating your deployment manifest the ETCD pre-load
+configuration is stored at `config/eii_config.json`. See the EII documentation
+for more information on populating this file with your desired EII configuration.
 The helper scripts will automatically serialize this JSON file and add it to your
 deployment manifest.
 
 ### Azure Blob Storage
 
-The EIS Azure Bridge enables to use of the Azure Blob Storage edge IoT service
-from Microsoft. This service can be used to save images from EIS into the blob
+The EII Azure Bridge enables to use of the Azure Blob Storage edge IoT service
+from Microsoft. This service can be used to save images from EII into the blob
 storage.
 
 If you wish to have the Azure Blob Storage service save the images to your
@@ -895,8 +895,8 @@ host filesystem, then you must do the following:
     to use the following commands:
 
     ```sh
-    $ sudo mkdir /opt/intel/eis/data/azure-blob-storage
-    $ sudo chown eisuser:eisuser /opt/intel/eis/data/azure-blob-storage
+    $ sudo mkdir /opt/intel/eii/data/azure-blob-storage
+    $ sudo chown eiiuser:eiiuser /opt/intel/eii/data/azure-blob-storage
     ```
 
 2. Next, modify your deployment manifest to alter the bind location which the
@@ -914,7 +914,7 @@ host filesystem, then you must do the following:
             "settings": {
                 "image": "mcr.microsoft.com/azure-blob-storage",
                 "createOptions": {
-                    "User": "${EIS_UID}",
+                    "User": "${EII_UID}",
                     "Env": [
                         "LOCAL_STORAGE_ACCOUNT_NAME=$AZ_BLOB_STORAGE_ACCOUNT_NAME",
                         "LOCAL_STORAGE_ACCOUNT_KEY=$AZ_BLOB_STORAGE_ACCOUNT_KEY"
@@ -941,7 +941,7 @@ host filesystem, then you must do the following:
                     // ... omitted ...
                     "HostConfig": {
                         "Binds": [
-                            "/opt/intel/eis/data/azure-blob-storage/:/blobroot"
+                            "/opt/intel/eii/data/azure-blob-storage/:/blobroot"
                         ]
                     }
                 }
@@ -953,12 +953,12 @@ host filesystem, then you must do the following:
     Make sure to run the `iotedgedev geoncfig -f <manifest-template>` command
     for the changes to be applied to the actual deployment manifest.
 
-    When you run the EIS Azure Bridge where it is configured to save the images into
+    When you run the EII Azure Bridge where it is configured to save the images into
     an Azure Blob Storage instance, you should see the images by running the
     following command:
 
     ```sh
-    $ sudo ls -l /opt/intel/eis/data/azure-blob-storage/BlockBlob/
+    $ sudo ls -l /opt/intel/eii/data/azure-blob-storage/BlockBlob/
     ```
 
     In that directory, you will see a folder for each container. Inside that directory
@@ -981,7 +981,7 @@ Microsoft provides a simluator for the Azure IoT Edge Runtime. During the
 setup of your development system (covered in the [Development System Setup](#dev-sys-setup)
 section), the simulator is automatically installed on your system.
 
-Additionally, the EIS Azure Bridge provides the `./tools/run-simulator.sh` script
+Additionally, the EII Azure Bridge provides the `./tools/run-simulator.sh` script
 to easily use the simulator with the bridge.
 
 To do this, follow steps 1 - 3 in the [Single-Node Azure IoT Edge Deployment](#single-node-dep)
@@ -1021,9 +1021,9 @@ $ sudo systemctl stop iotedge
 
 Then, run the simulator as specified above.
 
-## Supported EIS Services
+## Supported EII Services
 
-Below is a list of services supported by the EIS Azure Bridge:
+Below is a list of services supported by the EII Azure Bridge:
 
 * Video Ingestion
 * Video Analytics

@@ -1,16 +1,16 @@
 {
-    "EISAzureBridge": {
+    "EIIAzureBridge": {
         "version": "1.0",
         "type": "docker",
         "status": "running",
         "restartPolicy": "always",
         "env": { },
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_eis_azure_bridge:${EIS_VERSION}",
+            "image": "${DOCKER_REGISTRY}ia_eii_azure_bridge:${EII_VERSION}",
             "createOptions": {
-                "User": "${EIS_UID}",
+                "User": "${EII_UID}",
                 "Env": [
-                    "AppName=EISAzureBridge",
+                    "AppName=EIIAzureBridge",
                     "DEV_MODE=$DEV_MODE",
                     "PROFILING_MODE=$PROFILING_MODE",
                     "ETCD_HOST=$ETCD_HOST",
@@ -18,41 +18,41 @@
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST,azureblobstorageoniotedge"
                 ],
                 "Volumes": {
-                    "/EIS/sockets": {}
+                    "/EII/sockets": {}
                 },
                 "HostConfig": {
                     "ReadonlyRootfs": true,
                     "Binds": [
-                        "$EIS_INSTALL_PATH/sockets:/EIS/sockets:rw"
+                        "$EII_INSTALL_PATH/sockets:/EII/sockets:rw"
                     ],
                     "Mounts": [
                         {
                             "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EIS_CERTIFICATES/ca/ca_certificate.pem",
+                            "Source": "$EII_CERTIFICATES/ca/ca_certificate.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
                         {
                             "Target": "/run/secrets/etcd_root_cert",
-                            "Source": "$EIS_CERTIFICATES/root/root_client_certificate.pem",
+                            "Source": "$EII_CERTIFICATES/root/root_client_certificate.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
                         {
                             "Target": "/run/secrets/etcd_root_key",
-                            "Source": "$EIS_CERTIFICATES/root/root_client_key.pem",
+                            "Source": "$EII_CERTIFICATES/root/root_client_key.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
                         {
-                            "Target": "/run/secrets/etcd_EISAzureBridge_cert",
-                            "Source": "$EIS_CERTIFICATES/EISAzureBridge/EISAzureBridge_client_certificate.pem",
+                            "Target": "/run/secrets/etcd_EIIAzureBridge_cert",
+                            "Source": "$EII_CERTIFICATES/EIIAzureBridge/EIIAzureBridge_client_certificate.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
                         {
-                            "Target": "/run/secrets/etcd_EISAzureBridge_key",
-                            "Source": "$EIS_CERTIFICATES/EISAzureBridge/EISAzureBridge_client_key.pem",
+                            "Target": "/run/secrets/etcd_EIIAzureBridge_key",
+                            "Source": "$EII_CERTIFICATES/EIIAzureBridge/EIIAzureBridge_client_key.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         }
@@ -68,6 +68,6 @@
                 "az_output_topic": "camera1_stream_results"
             }
         },
-        "eis_config": "{}"
+        "eii_config": "{}"
     }
 }
