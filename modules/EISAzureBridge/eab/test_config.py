@@ -136,7 +136,6 @@ class TestConfigUtils(unittest.TestCase):
         self.assertEqual(changed_keys, ['dict'])
         self.assertEqual(removed_keys, ['dict2'])
 
-
     def test_get_msgbus_config(self):
         """Test the :code:`eab.config.get_msgbus_config()` method.
         """

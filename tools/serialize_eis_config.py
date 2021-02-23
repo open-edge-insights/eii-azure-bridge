@@ -46,8 +46,8 @@ with open(args.manifest, 'r') as f:
 
 # Serialize and populate the manifest
 config_str = json.dumps(config)
-manifest['modulesContent']['EISAzureBridge']['properties.desired']\
-        ['eis_config'] = config_str
+eis_azure_bridge = manifest['modulesContent']['EISAzureBridge']
+eis_azure_bridge['properties.desired']['eis_config'] = config_str
 
 with open(args.manifest, 'w') as f:
     json.dump(manifest, f, indent=4)

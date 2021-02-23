@@ -181,7 +181,7 @@ class BridgeState:
                 self.log.info(f'Creating subscriber {in_topic}')
                 self.log.debug(f'{in_topic} config: {topic_conf}')
                 assert 'az_output_topic' in topic_conf, \
-                        'Missing az_output_topic'
+                       'Missing az_output_topic'
 
                 if self.bsc is not None and \
                         'az_blob_container_name' in topic_conf:
