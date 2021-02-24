@@ -20,34 +20,66 @@
 
 ARG EII_VERSION
 ARG DOCKER_REGISTRY
-FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as ia_eiibase
-
+ARG ARTIFACTS="/artifacts"
 ARG EII_UID
 ARG EII_USER_NAME
-RUN useradd -r -u ${EII_UID} ${EII_USER_NAME}
+ARG UBUNTU_IMAGE_VERSION
+FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as base
+FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
+
+FROM base as builder
+LABEL description="Azure Bridge image"
+
+ARG ARTIFACTS
+WORKDIR /app
 
 ENV PY_ETCD3_VERSION cdc4c48bde88a795230a02aa574df84ed9ccfa52
 RUN git clone https://github.com/kragniz/python-etcd3 && \
     cd python-etcd3 && \
-    git checkout -b ${PY_ETCD3_VERSION} ${PY_ETCD3_VERSION} && \
-    python3.6 setup.py install && \
+    git checkout -b ${PY_ETCD3_VERSION} ${PY_ETCD3_VERSION}
+
+COPY requirements.txt .
+RUN pip3 install --user -r requirements.txt
+
+COPY . .
+
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
+
+# Setting python dev env
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3.6 \
+                                               python3-setuptools python3-dev \
+                                               g++ && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+
+ARG EII_UID
+ARG EII_USER_NAME
+RUN adduser --quiet --disabled-password ${EII_USER_NAME}
+ARG ARTIFACTS
+ARG CMAKE_INSTALL_PREFIX
+ENV PYTHONPATH $PYTHONPATH:/app/.local/lib/python3.6/site-packages:/app:/app/.local/lib/python3.6/dist-packages
+COPY --from=builder /root/.local/lib .local/lib
+COPY --from=builder /app .
+RUN cd python-etcd3 && \
+    python3.6 setup.py install --user && \
     cd .. && \
     rm -rf python-etcd3
 
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+COPY --from=common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
+COPY --from=common /eii/common/util/*.py util/
+COPY --from=common /root/.local/lib .local/lib
 
-FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
+RUN chown -R ${EII_UID} .local/lib/python3.6
 
-FROM ia_eiibase
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
+ENV PATH $PATH:/app/.local/bin
 
-COPY --from=common ${GO_WORK_DIR}/common/libs ${PY_WORK_DIR}/libs
-COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util
-COPY --from=common ${GO_WORK_DIR}/common/cmake ${PY_WORK_DIR}/common/cmake
-COPY --from=common /usr/local/lib /usr/local/lib
-COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
-
-COPY . .
 
 HEALTHCHECK NONE
 
