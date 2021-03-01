@@ -29,7 +29,7 @@ class MockConfigManagerClient:
     """Mock object for the configuration manager.
 
     .. note:: This only mocks the APIs of the configuration manager ETCD client
-        which the configuration utilities in the EII Azure Bridge uses.
+        which the configuration utilities in the Azure Bridge uses.
     """
     def __init__(self, mock_config):
         """Constructor.
@@ -139,7 +139,7 @@ class TestConfigUtils(unittest.TestCase):
     def test_get_msgbus_config(self):
         """Test the :code:`eab.config.get_msgbus_config()` method.
         """
-        app_name = 'EIIAzureBridge'
+        app_name = 'AzureBridge'
 
         # Set environmental variables for retrieving TCP and IPC configurations
         # This simulates connections to both VI and VA

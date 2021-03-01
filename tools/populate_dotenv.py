@@ -92,6 +92,6 @@ for var in VARS:
             this_env += f'\nAZ_CONTAINER_REGISTRY={value[:-1]}'
 
 
-# Write the new .env file contents for the EII Azure Bridge
+# Write the new .env file contents for the Azure Bridge
 with open(this_env_fn, 'w') as f:
     f.write(this_env)

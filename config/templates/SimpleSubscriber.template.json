@@ -15,6 +15,6 @@
         }
     },
     "routes": {
-        "BridgeToSimpleSubscriber": "FROM /messages/modules/EIIAzureBridge/outputs/* INTO BrokeredEndpoint(\"/modules/SimpleSubscriber/inputs/input1\")"
+        "BridgeToSimpleSubscriber": "FROM /messages/modules/AzureBridge/outputs/* INTO BrokeredEndpoint(\"/modules/SimpleSubscriber/inputs/input1\")"
     }
 }

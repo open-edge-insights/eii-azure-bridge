@@ -20,18 +20,18 @@
 
 version: '3.6'
 
-# NOTE: This docker-compose file is only used for building the EII Azure Bridge
+# NOTE: This docker-compose file is only used for building the Azure Bridge
 # services.
 
 services:
-    # EII Azure Bridge service
-    ia_eii_azure_bridge:
+    # Azure Bridge service
+    ia_azure_bridge:
         depends_on:
             - ia_common
-        image: ${DOCKER_REGISTRY}ia_eii_azure_bridge:${EII_VERSION}
+        image: ${DOCKER_REGISTRY}ia_azure_bridge:${EII_VERSION}
         build:
-            context: $PWD/../EIIAzureBridge/modules/EIIAzureBridge/
-            dockerfile: $PWD/../EIIAzureBridge/modules/EIIAzureBridge/Dockerfile
+            context: $PWD/../AzureBridge/modules/AzureBridge/
+            dockerfile: $PWD/../AzureBridge/modules/AzureBridge/Dockerfile
             args:
                 EII_VERSION: ${EII_VERSION}
                 EII_UID: ${EII_UID}
@@ -45,15 +45,15 @@ services:
           interval: 5m
 
         environment:
-            AppName: "EIIAzureBridge"
+            AppName: "AzureBridge"
             CertType: "zmq"
 
     # Simple subscriber service to land on the Azure IoT Edge Runtime
     ia_azure_simple_subscriber:
         image: ${DOCKER_REGISTRY}ia_azure_simple_subscriber:${EII_VERSION}
         build:
-            context: $PWD/../EIIAzureBridge/modules/SimpleSubscriber/
-            dockerfile: $PWD/../EIIAzureBridge/modules/SimpleSubscriber/Dockerfile
+            context: $PWD/../AzureBridge/modules/SimpleSubscriber/
+            dockerfile: $PWD/../AzureBridge/modules/SimpleSubscriber/Dockerfile
             args:
                 EII_VERSION: ${EII_VERSION}
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}

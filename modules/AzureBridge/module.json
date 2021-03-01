@@ -2,7 +2,7 @@
   "$schema-version": "0.0.1",
   "description": "EII to Azure IoT Edge Runtime Bridge",
   "image": {
-    "repository": "$AZ_CONTAINER_REGISTRY/eiiazurebridge",
+    "repository": "$AZ_CONTAINER_REGISTRY/azurebridge",
     "tag": {
       "version": "0.0.1",
       "platforms": {

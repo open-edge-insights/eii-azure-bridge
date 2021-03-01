@@ -1,16 +1,16 @@
 {
-    "EIIAzureBridge": {
+    "AzureBridge": {
         "version": "1.0",
         "type": "docker",
         "status": "running",
         "restartPolicy": "always",
         "env": { },
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_eii_azure_bridge:${EII_VERSION}",
+            "image": "${DOCKER_REGISTRY}ia_azure_bridge:${EII_VERSION}",
             "createOptions": {
                 "User": "${EII_UID}",
                 "Env": [
-                    "AppName=EIIAzureBridge",
+                    "AppName=AzureBridge",
                     "DEV_MODE=$DEV_MODE",
                     "PROFILING_MODE=$PROFILING_MODE",
                     "ETCD_HOST=$ETCD_HOST",
@@ -45,14 +45,14 @@
                             "ReadOnly": true
                         },
                         {
-                            "Target": "/run/secrets/etcd_EIIAzureBridge_cert",
-                            "Source": "$EII_CERTIFICATES/EIIAzureBridge/EIIAzureBridge_client_certificate.pem",
+                            "Target": "/run/secrets/etcd_AzureBridge_cert",
+                            "Source": "$EII_CERTIFICATES/AzureBridge/AzureBridge_client_certificate.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
                         {
-                            "Target": "/run/secrets/etcd_EIIAzureBridge_key",
-                            "Source": "$EII_CERTIFICATES/EIIAzureBridge/EIIAzureBridge_client_key.pem",
+                            "Target": "/run/secrets/etcd_AzureBridge_key",
+                            "Source": "$EII_CERTIFICATES/AzureBridge/AzureBridge_client_key.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         }

@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-"""EII Azure Bridge state singleton.
+"""Azure Bridge state singleton.
 """
 import os
 import json
@@ -42,7 +42,7 @@ from util.util import Util
 
 
 class BridgeState:
-    """Singleton containing the state of the EII Azure Bridge.
+    """Singleton containing the state of the Azure Bridge.
 
     .. note:: This object assumes it can find a file called,
         "config_schema.json", in the directory the application is executing
@@ -92,7 +92,7 @@ class BridgeState:
         # Setup Azure Blob connection
         conn_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
         if conn_str is not None:
-            self.log.info('Azure blob storage ENABLED in EII Azure bridge')
+            self.log.info('Azure blob storage ENABLED in Azure bridge')
             self.bsc = BlobServiceClient.from_connection_string(conn_str)
         else:
             self.log.warn('Azure blob storage DISABLED')
@@ -118,22 +118,22 @@ class BridgeState:
 
         self.log.debug('Finished initializing config manager')
 
-        # Configure the EII Azure bridge state with its initial state
+        # Configure the Azure bridge state with its initial state
         self.configure(twin['desired'])
 
         # Setup twin listener
         self.config_listener = asyncio.gather(config_listener(self))
 
     def configure(self, config):
-        """Configure the EII Azure Bridge using the given Azure digital
+        """Configure the Azure Bridge using the given Azure digital
         twin for the module.
 
         .. warning:: This will clear out any previous state that existed (i.e.
             all subscribers will be stopped)
 
-        :param dict config: Azure IoT Hub digital twin for the EII Azure Bridge
+        :param dict config: Azure IoT Hub digital twin for the Azure Bridge
         """
-        self.log.info('Configuring the EII Azure Bridge')
+        self.log.info('Configuring the Azure Bridge')
 
         # Verify the configuration
         self.log.debug('Validating JSON schema of new configuration')
@@ -289,7 +289,7 @@ class BridgeState:
 
         .. note: This is meant to be done at the close of the application
         """
-        self.log.info('Stopping the EII Azure Bridge')
+        self.log.info('Stopping the Azure Bridge')
 
         if self.config_listener is not None:
             self.log.debug('Stopping the config listener')

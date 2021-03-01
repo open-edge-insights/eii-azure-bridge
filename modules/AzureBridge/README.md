@@ -1,23 +1,23 @@
-EII Azure Bridge Module
+Azure Bridge Module
 =======================
 
-This directory contains the source code for the EII Azure Bridge EII service
+This directory contains the source code for the Azure Bridge EII service
 which bridges communication from the EII Message bus and the Azure IoT Edge
 Runtime. For more information on this service, see the top level README. The
 purpose of this README is to cover some specifics related to the code itself,
-and not the usage of the module in EII. Refer to the EII and EII Azure Bridge
+and not the usage of the module in EII. Refer to the EII and Azure Bridge
 READMEs for more information.
 
 ## Running Unit Tests
 
-The EII Azure Bridge contains unit tests for various utility functions in the
+The Azure Bridge contains unit tests for various utility functions in the
 service. It does not contain unit tests for every single method, because most
 of it is not unit test-able, meaning, you must have a fully up and running Azure
 IoT Edge Runtime in order to run the code succesfully. Testing the bridge in
 this way can be accomplished via using the Azure IoT Edge Runtime simulator
-documented in the root directory of the EII Azure Bridge service.
+documented in the root directory of the Azure Bridge service.
 
-To run the unit tests for the EII Azure Bridge, first install the EII Azure
+To run the unit tests for the Azure Bridge, first install the Azure
 Bridge python dependencies:
 
 ```sh

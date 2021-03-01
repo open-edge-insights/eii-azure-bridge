@@ -54,7 +54,7 @@ function check_error() {
 
 eii_config="../build/provision/config/eii_config.json"
 if [ ! -f "$eii_config" ] ; then
-    log_fatal "EII config \"${eii_config}\" does not exist, please provision EII"
+    log_fatal "EII config \"${eii_config}\" does not exist, please provision"
 fi
 
 log_info "Populating .env file with EII .env variables"

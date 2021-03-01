@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-"""EII Azure Bridge digital twin configuration listener and utilities.
+"""Azure Bridge digital twin configuration listener and utilities.
 """
 import os
 import json
@@ -28,7 +28,7 @@ from util.util import Util
 
 
 async def config_listener(bs):
-    """Listener for changes in the EII Azure Bridge Azure IoT Edge runtime
+    """Listener for changes in the Azure Bridge Azure IoT Edge runtime
     module digital twin changes.
 
     :param eab.bridge_state.BridgeState bs: Bridge state instance
@@ -94,7 +94,7 @@ def find_root_changes(orig, new):
 def get_msgbus_config(app_name, config_mgr, dev_mode):
     """Helper method to construct the EII Message Bus configuration dictionary.
 
-    :param str app_name: EIIAzureBridge app name
+    :param str app_name: AzureBridge app name
     :param config_mgr: Config Manager Instance
     :param bool dev_mode: Flag for whether or not execution is in dev mode
     :return: Tuple of (IPC topic->msgbus config dict,
