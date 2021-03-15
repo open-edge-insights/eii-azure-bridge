@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-"""EIS Azure Bridge state singleton.
+"""Azure Bridge state singleton.
 """
 import os
 import json
@@ -34,15 +34,15 @@ from eab.config import *
 from azure.iot.device.aio import IoTHubModuleClient
 from azure.storage.blob import BlobServiceClient
 
-# EIS Imports
-import eis.msgbus as emb
+# EII Imports
+import eii.msgbus as emb
 import cfgmgr.config_manager as cfg
 from util.log import configure_logging
 from util.util import Util
 
 
 class BridgeState:
-    """Singleton containing the state of the EIS Azure Bridge.
+    """Singleton containing the state of the Azure Bridge.
 
     .. note:: This object assumes it can find a file called,
         "config_schema.json", in the directory the application is executing
@@ -92,7 +92,7 @@ class BridgeState:
         # Setup Azure Blob connection
         conn_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
         if conn_str is not None:
-            self.log.info('Azure blob storage ENABLED in EIS Azure bridge')
+            self.log.info('Azure blob storage ENABLED in Azure bridge')
             self.bsc = BlobServiceClient.from_connection_string(conn_str)
         else:
             self.log.warn('Azure blob storage DISABLED')
@@ -106,7 +106,7 @@ class BridgeState:
         twin = self.loop.run_until_complete(self.module_client.get_twin())
         self.log.debug('Received initial digital twin')
 
-        self.log.info('Initializing EIS config manager')
+        self.log.info('Initializing EII config manager')
 
         try:
             self.config_mgr = cfg.ConfigMgr()
@@ -118,22 +118,22 @@ class BridgeState:
 
         self.log.debug('Finished initializing config manager')
 
-        # Configure the EIS Azure bridge state with its initial state
+        # Configure the Azure bridge state with its initial state
         self.configure(twin['desired'])
 
         # Setup twin listener
         self.config_listener = asyncio.gather(config_listener(self))
 
     def configure(self, config):
-        """Configure the EIS Azure Bridge using the given Azure digital
+        """Configure the Azure Bridge using the given Azure digital
         twin for the module.
 
         .. warning:: This will clear out any previous state that existed (i.e.
             all subscribers will be stopped)
 
-        :param dict config: Azure IoT Hub digital twin for the EIS Azure Bridge
+        :param dict config: Azure IoT Hub digital twin for the Azure Bridge
         """
-        self.log.info('Configuring the EIS Azure Bridge')
+        self.log.info('Configuring the Azure Bridge')
 
         # Verify the configuration
         self.log.debug('Validating JSON schema of new configuration')
@@ -155,7 +155,7 @@ class BridgeState:
 
         self.log = configure_logging(log_level, __name__, False)
 
-        self.log.info('Getting EIS Message Bus configuration')
+        self.log.info('Getting EII Message Bus configuration')
         ipc_msgbus_config, tcp_msgbus_config = get_msgbus_config(
                 self.app_name, self.config_mgr, self.dev_mode)
 
@@ -163,7 +163,7 @@ class BridgeState:
                        f'{ipc_msgbus_config}, \nTCP:{tcp_msgbus_config}')
 
         # Initialize message bus context
-        self.log.info('Initializing EIS Message Bus')
+        self.log.info('Initializing EII Message Bus')
         if ipc_msgbus_config:
             for topic, msgbus_config in ipc_msgbus_config.items():
                 ipc_msgbus_ctx = emb.MsgbusContext(msgbus_config)
@@ -214,7 +214,7 @@ class BridgeState:
         # Schedule task for C2D Listener
         self.subscriber_listeners = asyncio.gather(*listener_coroutines)
 
-        # Configure EIS
+        # Configure EII
         self.log.info('Getting ETCD configuration')
 
         # NOTE: THIS IS A HACK, AND NEEDS TO BE FIXED IN THE FUTURE
@@ -243,32 +243,32 @@ class BridgeState:
                            f'client instance with error: {e}')
             raise e
         resp = etcd.get_all()
-        eis_config = {}
+        eii_config = {}
         for value, meta in resp:
             try:
                 value = json.loads(value.decode('utf-8'))
                 key = meta.key.decode('utf-8')
-                eis_config[key] = value
+                eii_config[key] = value
             except Exception as e:
                 # NOTE: Errors may happen if security is enabled, because the
                 # first part is the request's key
                 self.log.error(f'{e}')
 
-        self.log.debug('Finding changes in EIS configuration')
-        new_eis_config = json.loads(config['eis_config'])
+        self.log.debug('Finding changes in EII configuration')
+        new_eii_config = json.loads(config['eii_config'])
         changed_keys, removed_keys = find_root_changes(
-                eis_config, new_eis_config)
+                eii_config, new_eii_config)
 
         self.log.debug(f'Changed service configs: {changed_keys}')
         self.log.debug(f'Removed service configs: {removed_keys}')
 
-        self.log.info('Applying EIS configuration')
+        self.log.info('Applying EII configuration')
 
         self.log.debug('Applying changes to the changed configs')
         for key in changed_keys:
             self.log.debug(f'Pushing config for {key}')
             etcd.put(
-                    key, json.dumps(new_eis_config[key], indent=4))
+                    key, json.dumps(new_eii_config[key], indent=4))
             self.log.debug(f'Successfully pushed config for {key}')
 
         self.log.debug('Deleting removed service configs')
@@ -278,7 +278,7 @@ class BridgeState:
             etcd.delete(key)
             self.log.debug(f'Successfully removed config for {key}')
 
-        self.log.info('EIS configuration update applied')
+        self.log.info('EII configuration update applied')
 
         # Save configuration for future comparisons
         self.config = config
@@ -289,7 +289,7 @@ class BridgeState:
 
         .. note: This is meant to be done at the close of the application
         """
-        self.log.info('Stopping the EIS Azure Bridge')
+        self.log.info('Stopping the Azure Bridge')
 
         if self.config_listener is not None:
             self.log.debug('Stopping the config listener')
@@ -307,11 +307,11 @@ class BridgeState:
         """
         # If the subscriber listeners are running in the asyncio loop stop them
         if self.subscriber_listeners is not None:
-            self.log.debug('Stopping all EIS subscriber listeners')
+            self.log.debug('Stopping all EII subscriber listeners')
             self.subscriber_listeners.cancel()
 
         # Close existing subscribers
-        self.log.debug('Closing all EIS subscribers')
+        self.log.debug('Closing all EII subscribers')
         for sub in self.subscribers:
             sub.close()
 

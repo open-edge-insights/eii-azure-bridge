@@ -18,13 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-ARG EIS_VERSION
+ARG EII_VERSION
 ARG DOCKER_REGISTRY
-FROM ${DOCKER_REGISTRY}ia_eisbase:$EIS_VERSION as ia_eisbase
+FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as ia_eiibase
 
-ARG EIS_UID
-ARG EIS_USER_NAME
-RUN useradd -r -u ${EIS_UID} ${EIS_USER_NAME}
+ARG EII_UID
+ARG EII_USER_NAME
+RUN useradd -r -u ${EII_UID} ${EII_USER_NAME}
 
 ENV PY_ETCD3_VERSION cdc4c48bde88a795230a02aa574df84ed9ccfa52
 RUN git clone https://github.com/kragniz/python-etcd3 && \
@@ -37,9 +37,9 @@ RUN git clone https://github.com/kragniz/python-etcd3 && \
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
-FROM ${DOCKER_REGISTRY}ia_common:$EIS_VERSION as common
+FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
 
-FROM ia_eisbase
+FROM ia_eiibase
 
 COPY --from=common ${GO_WORK_DIR}/common/libs ${PY_WORK_DIR}/libs
 COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util

@@ -1,22 +1,22 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "EISAzureBridge",
+    "title": "AzureBridge",
     "type": "object",
     "properties": {
         "topics": {
             "type": "object",
-            "description": "Topics to subscribe to and publish over the Azure Edge Runtime, each key is an EIS Message bus topic",
+            "description": "Topics to subscribe to and publish over the Azure Edge Runtime, each key is an EII Message bus topic",
             "additionalProperties": {
                 "$ref": "#/definitions/topic_def",
                 "description": "Each additional property's key must be the EMB topic string"
             }
         },
-        "eis_config": {
+        "eii_config": {
             "type": "string",
-            "description": "EIS ETCD configuration object, see EIS documentation"
+            "description": "EII ETCD configuration object, see EII documentation"
         }
     },
-    "required": ["topics", "eis_config"],
+    "required": ["topics", "eii_config"],
     "definitions": {
         "topic_def": {
             "$id": "#topic_def",

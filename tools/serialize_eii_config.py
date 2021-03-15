@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-"""Python script to serialize the EIS ETCD pre-load JSON file into the Azure
+"""Python script to serialize the EII ETCD pre-load JSON file into the Azure
 IoT Edge deployment manifest template.
 """
 import os
@@ -28,14 +28,14 @@ import argparse
 # Parse command line arguments
 ap = argparse.ArgumentParser()
 ap.add_argument('manifest', help='Azure manifest template')
-ap.add_argument('config', help='EIS pre-load configuration path')
+ap.add_argument('config', help='EII pre-load configuration path')
 args = ap.parse_args()
 
 # Verify the input files exist
 assert os.path.exists(args.config), f'{args.config} does not exist'
 assert os.path.exists(args.manifest), f'{args.manifest} does not exist'
 
-print('[INFO] Populating EIS configuration into Azure manifest')
+print('[INFO] Populating EII configuration into Azure manifest')
 
 # Load JSON files
 with open(args.config, 'r') as f:
@@ -46,8 +46,8 @@ with open(args.manifest, 'r') as f:
 
 # Serialize and populate the manifest
 config_str = json.dumps(config)
-manifest['modulesContent']['EISAzureBridge']['properties.desired']\
-        ['eis_config'] = config_str
+manifest['modulesContent']['AzureBridge']['properties.desired']\
+        ['eii_config'] = config_str
 
 with open(args.manifest, 'w') as f:
     json.dump(manifest, f, indent=4)

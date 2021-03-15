@@ -62,24 +62,24 @@ log_info "Loading environmental variables"
 source ./.env
 check_error "Failed to source environment"
 
-# Creating some required directories by EIS
+# Creating some required directories by EII
 
-eis_config="../build/provision/config/eis_config.json"
-if [ ! -f "$eis_config" ] ; then
-    log_fatal "EIS config \"${eis_config}\" does not exist, please provision EIS"
+eii_config="../build/provision/config/eii_config.json"
+if [ ! -f "$eii_config" ] ; then
+    log_fatal "EII config \"${eii_config}\" does not exist, please provision"
 fi
 
-log_info "Populating .env file with EIS .env variables"
+log_info "Populating .env file with EII .env variables"
 python3 ./tools/populate_dotenv.py
-check_error "Failed to populate .env with EIS variables"
+check_error "Failed to populate .env with EII variables"
 
 log_info "Generating deployment manifest from \"$deployment\" template"
 iotedgedev genconfig -f $deployment
 check_error "Failed to generate deployment manifest"
 
-log_info "Populating EIS configuration into Azure manifest"
-python3 ./tools/serialize_eis_config.py ./$deployment $eis_config
-check_error "Failed to populate EIS configuration into Azure manifest"
+log_info "Populating EII configuration into Azure manifest"
+python3 ./tools/serialize_eii_config.py ./$deployment $eii_config
+check_error "Failed to populate EII configuration into Azure manifest"
 
 log_info "Running simulator"
 sudo -H -E -u $USER  env "PATH=$PATH" iotedgehubdev start -d ${PWD}/config/$deployment_name.amd64.json -v

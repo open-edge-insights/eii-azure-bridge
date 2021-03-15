@@ -31,7 +31,7 @@ assert os.path.exists(TEMPLATES_DIR), f'Cannot find {TEMPLATES_DIR}'
 # List of supported services to add (automatically) to the deployment
 # manifest
 SUPPORTED_SERVICES = [
-    'EISAzureBridge', 'ia_video_ingestion', 'SimpleSubscriber',
+    'AzureBridge', 'ia_video_ingestion', 'SimpleSubscriber',
     'AzureBlobStorageonIoTEdge', 'ia_video_analytics'
 ]
 
@@ -57,7 +57,7 @@ for service in args.services:
         template = json.load(f)
 
     # Add some custom properties based on the selected services
-    if service == 'EISAzureBridge':
+    if service == 'AzureBridge':
         if args.dev_mode:
             # Remove certificate mounts if in dev-mode
             del template[service]['settings']['createOptions']['HostConfig']['Mounts']

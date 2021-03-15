@@ -25,15 +25,15 @@ import re
 
 # List of variables which need to be populated from the parent .env file
 VARS = [
-    'EIS_VERSION',
+    'EII_VERSION',
     'DEV_MODE',
     'PROFILING_MODE',
-    'EIS_USER_NAME',
-    'EIS_UID',
+    'EII_USER_NAME',
+    'EII_UID',
     'ETCD_HOST',
     'ETCD_PREFIX',
     'SOCKET_DIR',
-    'EIS_INSTALL_PATH',
+    'EII_INSTALL_PATH',
     'DOCKER_REGISTRY',
     'HOST_IP'
 ]
@@ -92,6 +92,6 @@ for var in VARS:
             this_env += f'\nAZ_CONTAINER_REGISTRY={value[:-1]}'
 
 
-# Write the new .env file contents for the EIS Azure Bridge
+# Write the new .env file contents for the Azure Bridge
 with open(this_env_fn, 'w') as f:
     f.write(this_env)
