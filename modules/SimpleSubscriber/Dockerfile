@@ -18,9 +18,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM python:3.7-slim
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION
 ARG EII_UID
 ARG EII_USER_NAME
+
+# Setting python dev env
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common curl && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3.6 \
+                                               python3-pip \
+                                               python3-setuptools && \
+    python3.6 -m pip install -U pip && \
+    ln -sf /usr/bin/pip /usr/bin/pip3
 
 WORKDIR /app
 

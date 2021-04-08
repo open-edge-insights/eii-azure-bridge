@@ -55,6 +55,7 @@ services:
             context: $PWD/../AzureBridge/modules/SimpleSubscriber/
             dockerfile: $PWD/../AzureBridge/modules/SimpleSubscriber/Dockerfile
             args:
+                UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
                 EII_VERSION: ${EII_VERSION}
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}
                 EII_UID: ${EII_UID}
