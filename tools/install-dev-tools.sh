@@ -55,7 +55,7 @@ fi
 
 log_info "Installing Python dependencies"
 pip3 install -r $reqs_file
-pip3 install -y iotedgehubdev
+pip3 install iotedgehubdev
 check_error "Failed to install Python dependencies"
 
 CURL=`which curl`
