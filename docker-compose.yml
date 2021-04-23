@@ -49,6 +49,10 @@ services:
         environment:
             AppName: "AzureBridge"
             CertType: "zmq"
+            no_proxy: ${ETCD_HOST}
+
+        networks:
+          - eii
 
     # Simple subscriber service to land on the Azure IoT Edge Runtime
     ia_azure_simple_subscriber:
@@ -67,4 +71,6 @@ services:
         healthcheck:
           test: ["CMD-SHELL", "exit", "0"]
           interval: 5m
-        
+        networks:
+          - eii
+
