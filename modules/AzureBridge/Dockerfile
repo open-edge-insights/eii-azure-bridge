@@ -50,8 +50,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y --no-install-recommends python3.6 \
-                                               python3-setuptools python3-dev \
+    apt-get install -y --no-install-recommends python3-setuptools python3-dev \
                                                g++ && \
     rm -rf /var/lib/apt/lists/*
 
@@ -63,11 +62,11 @@ ARG EII_USER_NAME
 RUN adduser --quiet --disabled-password ${EII_USER_NAME}
 ARG ARTIFACTS
 ARG CMAKE_INSTALL_PREFIX
-ENV PYTHONPATH $PYTHONPATH:/app/.local/lib/python3.6/site-packages:/app:/app/.local/lib/python3.6/dist-packages
+ENV PYTHONPATH $PYTHONPATH:/app/.local/lib/python3.8/site-packages:/app:/app/.local/lib/python3.8/dist-packages
 COPY --from=builder /root/.local/lib .local/lib
 COPY --from=builder /app .
 RUN cd python-etcd3 && \
-    python3.6 setup.py install --user && \
+    python3 setup.py install --user && \
     cd .. && \
     rm -rf python-etcd3
 
@@ -75,7 +74,7 @@ COPY --from=common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
 COPY --from=common /eii/common/util/*.py util/
 COPY --from=common /root/.local/lib .local/lib
 
-RUN chown -R ${EII_UID} .local/lib/python3.6
+RUN chown -R ${EII_UID} .local/lib/python3.8
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
 ENV PATH $PATH:/app/.local/bin
@@ -83,4 +82,4 @@ ENV PATH $PATH:/app/.local/bin
 
 HEALTHCHECK NONE
 
-CMD ["python3.6", "-u", "main.py"]
+CMD ["python3", "-u", "main.py"]
