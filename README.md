@@ -734,7 +734,10 @@ page of the Azure documentation.
 
 EII provides a sample UDF which utilizes the ONNX RT to execute your machine learning /
 deep learning model. It also supports connecting to an AzureML Workspace to download
-the model and then run it. The source code for this UDF is in `common/video/udfs/python/sample_onnx/`.
+the model and then run it. The source code for this UDF is in 
+`[WORKDIR]/IEdgeInsights/common/video/udfs/python/sample_onnx/`, please also refer 
+`Sample ONNX UDF` section in `[WORKDIR]/IEdgeInsights/common/video/udfs/README.md` for doing
+the required configuration for running this UDF.
 
 To use this UDF with EII, you need to modify your `build/provision/config/eii_config.json`
 configuration file to run the UDF in either your Video Ingesiton or Video Analytics
