@@ -38,6 +38,11 @@ RUN git clone https://github.com/kragniz/python-etcd3 && \
     cd python-etcd3 && \
     git checkout -b ${PY_ETCD3_VERSION} ${PY_ETCD3_VERSION}
 
+RUN cd python-etcd3 && \
+    python3 setup.py install --user && \
+    cd .. && \
+    rm -rf python-etcd3
+
 COPY requirements.txt .
 RUN pip3 install --user -r requirements.txt
 
@@ -45,14 +50,9 @@ COPY . .
 
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 
-# Setting python dev env
+# Setting python env
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends python3-setuptools python3-dev \
-                                               g++ && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends python3-distutils python3-minimal
 
 WORKDIR /app
 
@@ -65,10 +65,6 @@ ARG CMAKE_INSTALL_PREFIX
 ENV PYTHONPATH $PYTHONPATH:/app/.local/lib/python3.8/site-packages:/app:/app/.local/lib/python3.8/dist-packages
 COPY --from=builder /root/.local/lib .local/lib
 COPY --from=builder /app .
-RUN cd python-etcd3 && \
-    python3 setup.py install --user && \
-    cd .. && \
-    rm -rf python-etcd3
 
 COPY --from=common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
 COPY --from=common /eii/common/util/*.py util/
