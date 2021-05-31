@@ -55,6 +55,7 @@ fi
 
 log_info "Installing Python dependencies"
 pip3 install -r $reqs_file
+pip3 install iotedgehubdev
 check_error "Failed to install Python dependencies"
 
 CURL=`which curl`
@@ -79,3 +80,4 @@ check_error "Failed to install azure-iot Azure CLI extension"
 log_info "Installing azure-cli-iot-ext extension"
 az extension add --name azure-cli-iot-ext
 check_error "Failed to install azure-cli-iot-ext Azure CLI extension"
+ 

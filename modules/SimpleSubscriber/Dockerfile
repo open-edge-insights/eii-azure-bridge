@@ -27,10 +27,10 @@ WORKDIR /app
 RUN useradd -r -u ${EII_UID} ${EII_USER_NAME}
 
 COPY requirements.txt ./
-RUN pip install -r requirements.txt
+
+RUN python3 -m pip install -r requirements.txt
 
 COPY . .
 
 HEALTHCHECK NONE
-
 CMD [ "python3", "-u", "./main.py" ]
