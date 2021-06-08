@@ -33,15 +33,10 @@ LABEL description="Azure Bridge image"
 ARG ARTIFACTS
 WORKDIR /app
 
-ENV PY_ETCD3_VERSION cdc4c48bde88a795230a02aa574df84ed9ccfa52
-RUN git clone https://github.com/kragniz/python-etcd3 && \
-    cd python-etcd3 && \
-    git checkout -b ${PY_ETCD3_VERSION} ${PY_ETCD3_VERSION}
-
-RUN cd python-etcd3 && \
-    python3 setup.py install --user && \
-    cd .. && \
-    rm -rf python-etcd3
+# Uninstalling python packages installed at /usr/lib/python3/dist-packages
+# in ia_eiibase image as some of them were considered while
+# installing the app's requirements.txt below
+RUN pip3 freeze | xargs pip3 uninstall -y
 
 COPY requirements.txt .
 RUN pip3 install --user -r requirements.txt
@@ -52,10 +47,9 @@ FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 
 # Setting python env
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3-distutils python3-minimal
+    apt-get install -y --no-install-recommends python3-distutils python3-minimal python3-setuptools
 
 WORKDIR /app
-
 
 ARG EII_UID
 ARG EII_USER_NAME
@@ -74,7 +68,6 @@ RUN chown -R ${EII_UID} .local/lib/python3.8
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
 ENV PATH $PATH:/app/.local/bin
-
 
 HEALTHCHECK NONE
 
