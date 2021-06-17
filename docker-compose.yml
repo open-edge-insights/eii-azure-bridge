@@ -28,7 +28,7 @@ services:
     ia_azure_bridge:
         depends_on:
             - ia_common
-        image: ${DOCKER_REGISTRY}ia_azure_bridge:${EII_VERSION}
+        image: ${DOCKER_REGISTRY}openedgeinsights/ia_azure_bridge:${EII_VERSION}
         build:
             context: $PWD/../AzureBridge/modules/AzureBridge/
             dockerfile: $PWD/../AzureBridge/modules/AzureBridge/Dockerfile
@@ -56,7 +56,7 @@ services:
 
     # Simple subscriber service to land on the Azure IoT Edge Runtime
     ia_azure_simple_subscriber:
-        image: ${DOCKER_REGISTRY}ia_azure_simple_subscriber:${EII_VERSION}
+        image: ${DOCKER_REGISTRY}openedgeinsights/ia_azure_simple_subscriber:${EII_VERSION}
         build:
             context: $PWD/../AzureBridge/modules/SimpleSubscriber/
             dockerfile: $PWD/../AzureBridge/modules/SimpleSubscriber/Dockerfile

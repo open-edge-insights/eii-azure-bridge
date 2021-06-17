@@ -5,7 +5,7 @@
         "status": "running",
         "restartPolicy": "always",
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_video_analytics:$EII_VERSION",
+            "image": "${DOCKER_REGISTRY}openedgeinsights/ia_video_analytics:$EII_VERSION",
             "createOptions": {
                 "Hostname": "ia_video_analytics",
                 "Env": [
