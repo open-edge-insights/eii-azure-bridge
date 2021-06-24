@@ -200,7 +200,7 @@ Container Registry.
 Next, execute the following commands:
 
 ```sh
-$ python3 builder.py -f video-streaming-azure.yml
+$ python3 builder.py -f usecases/video-streaming-azure.yml
 $ docker-compose -f docker-compose-build.yml build
 $ docker-compose -f docker-compose-push.yml push
 ```
