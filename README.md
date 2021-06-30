@@ -1024,7 +1024,7 @@ on the same system. If you are using the same system, first stop the Azure IoT E
 Runtime daemon with the following command:
 
 ```sh
-$ sudo systemctl stop iotedge
+$ sudo iotedge system stop
 ```
 
 Then, run the simulator as specified above.
