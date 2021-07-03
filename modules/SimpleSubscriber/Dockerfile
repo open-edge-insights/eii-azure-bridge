@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Intel Corporation.
+# Copyright (c) 2021 Intel Corporation.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,9 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM python:3.8-slim
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION
 ARG EII_UID
 ARG EII_USER_NAME
+
+# Setting python dev env
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3-pip && \
+    ln -sf /usr/bin/pip3 /usr/bin/pip && \
+    python3 -m pip install -U pip
 
 WORKDIR /app
 

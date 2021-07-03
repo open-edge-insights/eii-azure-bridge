@@ -65,6 +65,7 @@ services:
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}
                 EII_UID: ${EII_UID}
                 EII_USER_NAME: ${EII_USER_NAME}
+                UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         ipc: "none"
         security_opt:
         - no-new-privileges
