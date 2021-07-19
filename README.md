@@ -1,3 +1,34 @@
+**Contents**
+
+- [Azure Bridge](#azure-bridge)
+  - [Pre-Requisites / Setup](#pre-requisites--setup)
+    - [<a name="az-cloud-setup"></a>Azure Cloud Setup](#a-nameaz-cloud-setupaazure-cloud-setup)
+      - [Setting up AzureML](#setting-up-azureml)
+        - [Pushing a Model to AzureML](#pushing-a-model-to-azureml)
+    - [<a name="dev-sys-setup"></a>Development System Setup](#a-namedev-sys-setupadevelopment-system-setup)
+  - [<a name="eii-build-push"></a>Build and Push EII Containers](#a-nameeii-build-pushabuild-and-push-eii-containers)
+  - [<a name="single-node-dep"></a>Single-Node Azure IoT Edge Deployment](#a-namesingle-node-depasingle-node-azure-iot-edge-deployment)
+    - [Step 1 - Provisioning](#step-1---provisioning)
+      - [Expected Result](#expected-result)
+    - [Step 2 - Configuring EII](#step-2---configuring-eii)
+      - [Expected Result](#expected-result-1)
+    - [Step 3 - Configuring Azure IoT Deployment Manifest](#step-3---configuring-azure-iot-deployment-manifest)
+      - [Expected Result](#expected-result-2)
+    - [Step 4 - Deployment](#step-4---deployment)
+      - [Expected Results](#expected-results)
+    - [Helpful Debugging Commands](#helpful-debugging-commands)
+    - [Final Notes](#final-notes)
+  - [Configuration](#configuration)
+    - [Azure Bridge](#azure-bridge-1)
+    - [Sample EII ONNX UDF](#sample-eii-onnx-udf)
+    - [Simple Subscriber](#simple-subscriber)
+    - [EII ETCD Pre-Load](#eii-etcd-pre-load)
+    - [Azure Blob Storage](#azure-blob-storage)
+    - [Azure Deployment Manifest](#azure-deployment-manifest)
+  - [Azure IoT Edge Simulator](#azure-iot-edge-simulator)
+  - [Supported EII Services](#supported-eii-services)
+  - [Additional Resources](#additional-resources)
+
 # Azure Bridge
 
 > **NOTE:** The source code for this project must be placed under the `IEdgeInsights`
@@ -576,8 +607,8 @@ For ZeroMQ TCP subscribers, like the example shown above, the `EndPoint` in
 the subscriber's configuration object has to be overridden through an
 environmental variable. The reason for this, is that the Azure Bridge
 service runs attached to a bridged Docker network created by the Azure IoT
-Edge Runtime, whereas the other EII services run on the host's network. In
-order to subscribe, the Azure Bridge must use the host's IP address to
+Edge Runtime, whereas the other EII services run on the different bridged network.
+In order to subscribe, the Azure Bridge must use the host's IP address to
 connect.
 
 If the Azure Bridge is only subscribing to a single service, then the
