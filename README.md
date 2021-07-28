@@ -618,7 +618,8 @@ For instance, if the configuration example had another object in the Subscribers
 list which had the `Name` key set to `example_name`, then the environmental
 variable name would need to be `SUBSCRIBER_example_name_ENDPOINT`. Essentially,
 for multiple subscribers the `Name` property must be in the environmental
-variable name between the `SUBSCRIBER_` and `_ENDPOINT`.
+variable name between the `SUBSCRIBER_` and `_ENDPOINT`. The same holds true for
+`CLIENT_ENDPOINT` and `CLIENT_<Name>_ENDPOINT` usage of environmental variables too.
 
 In either case, the value of the environmental variable must be set to
 `$HOST_IP:<PORT>` where you must fill in what the desired port is. Note that the
@@ -639,6 +640,8 @@ TCP, add the environmental variable `PUBLISHER_ENDPOINT=0.0.0.0:<PORT>` to the
 environmental variable configuration of the serivce's module configuration in
 your deployment manifest (note: be sure to replace the port).  Or if there are
 multiple topics being published, use the variable `PUBLISHER_<Name>_ENDPOINT`.
+The same holds true for `SERVER_ENDPOINT` and `SERVER_<Name>_ENDPOINT` usage
+of environmental variables too.
 
 These variables have already been set for to have the Azure Bridge subscribe
 to a single instance of the Video Analytics service. This configuration can be
