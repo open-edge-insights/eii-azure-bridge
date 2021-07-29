@@ -2,12 +2,12 @@
 
 - [Azure Bridge](#azure-bridge)
   - [Pre-Requisites / Setup](#pre-requisites--setup)
-    - [<a name="az-cloud-setup"></a>Azure Cloud Setup](#a-nameaz-cloud-setupaazure-cloud-setup)
+    - [Azure Cloud Setup](#azure-cloud-setup)
       - [Setting up AzureML](#setting-up-azureml)
         - [Pushing a Model to AzureML](#pushing-a-model-to-azureml)
-    - [<a name="dev-sys-setup"></a>Development System Setup](#a-namedev-sys-setupadevelopment-system-setup)
-  - [<a name="eii-build-push"></a>Build and Push EII Containers](#a-nameeii-build-pushabuild-and-push-eii-containers)
-  - [<a name="single-node-dep"></a>Single-Node Azure IoT Edge Deployment](#a-namesingle-node-depasingle-node-azure-iot-edge-deployment)
+    - [Development System Setup](#development-system-setup)
+  - [Build and Push EII Containers](#build-and-push-eii-containers)
+  - [Single-Node Azure IoT Edge Deployment](#single-node-azure-iot-edge-deployment)
     - [Step 1 - Provisioning](#step-1---provisioning)
       - [Expected Result](#expected-result)
     - [Step 2 - Configuring EII](#step-2---configuring-eii)
@@ -72,12 +72,12 @@ you are going to deploy the Azure Bridge on.
 
 The following sections cover the setup for the first two environments listed.
 Setting up your system for a single-node deployment will be covered in the
-[Single-Node Azure IoT Edge Deployment](#single-node-dep) section below.
+[Single-Node Azure IoT Edge Deployment](#single-node-azure-iot-edge-deployment) section below.
 
 > **NOTE:** When you deploy with Azure IoT Hub you will also need to configure
 > the Azure IoT Edge Runtime and EII on your target device.
 
-### <a name="az-cloud-setup"></a>Azure Cloud Setup
+### Azure Cloud Setup
 
 Prior to using the Azure Bridge there are a few cloud services in Azure
 which must be initialized.
@@ -143,7 +143,7 @@ notebook provided my Microsoft to train a simple model to push to your AzureML W
 
 Also, you can find pre-trained models in the [ONNX Model Zoo](https://github.com/onnx/models).
 
-### <a name="dev-sys-setup"></a>Development System Setup
+### Development System Setup
 
 The development system will be used for the following actions:
 
@@ -213,7 +213,7 @@ Please see the list of supported services at the end of this README for the
 services which can be pushed to an ACR instance. Not all EII services are
 supported by and validated to work with the Azure Bridge.
 
-## <a name="eii-build-push"></a>Build and Push EII Containers
+## Build and Push EII Containers
 
 > **NOTE:** By following the steps below, the Azure Bridge and Simple
 > Subscriber Azure IoT Modules will be pushed to your ACR instance as well.
@@ -238,7 +238,7 @@ $ docker-compose -f docker-compose-push.yml push
 
 For more detailed instructions on this process, see the EII README and User Guide.
 
-## <a name="single-node-dep"></a>Single-Node Azure IoT Edge Deployment
+## Single-Node Azure IoT Edge Deployment
 
 > **NOTE:** Outside of the Azure ecosystem, EII can be deployed and communicate
 > across nodes. In the Azure IoT Edge ecosystem this is not possible with EII.
@@ -272,9 +272,9 @@ the following steps:
 4. Deployment
 
 Prior to deploying a single Azure IoT Edge node you must have already
-configured your Azure cloud instance (see instructions in the [Azure Cloud Setup](#az-cloud-setup)
+configured your Azure cloud instance (see instructions in the [Azure Cloud Setup](#azure-cloud-setup)
 section). Additionally, you need to have already built and pushed the EII services to your
-Azure Container Registry (follow the instructions in the [Build and Push EII Containers](#eii-build-push)
+Azure Container Registry (follow the instructions in the [Build and Push EII Containers](##build-and-push-eii-containers)
 section).
 
 Provided you have met these two prerequisites, follow the steps below to do a
@@ -393,7 +393,7 @@ create your Azure IoT Hub deployment manifest. The Azure Bridge provides some
 convenience scripts to ease this process.
 
 > **NOTE:** These steps should be done from your development system setup in
-> the [Development System Setup](#dev-sys-setup) section. Note, that for testing
+> the [Development System Setup](#development-system-setup) section. Note, that for testing
 > and development purposes, these could be the same system.
 
 To generate your deployment manifest template, execute the following command:
@@ -463,7 +463,7 @@ file and a valid `config/*.amd64.json` file.
 If, for some reason, these commands fail, revisit Step 2 and make sure all of your
 environmental variables are set correctly. And if that does not resolve your issue,
 verify that your development system is setup correctly by revisiting the
-[Development System Setup](#dev-sys-setup) section.
+[Development System Setup](#development-system-setup) section.
 
 ### Step 4 - Deployment
 
@@ -1020,13 +1020,13 @@ see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/module-composit
 ## Azure IoT Edge Simulator
 
 Microsoft provides a simluator for the Azure IoT Edge Runtime. During the
-setup of your development system (covered in the [Development System Setup](#dev-sys-setup)
+setup of your development system (covered in the [Development System Setup](#development-system-setup)
 section), the simulator is automatically installed on your system.
 
 Additionally, the Azure Bridge provides the `./tools/run-simulator.sh` script
 to easily use the simulator with the bridge.
 
-To do this, follow steps 1 - 3 in the [Single-Node Azure IoT Edge Deployment](#single-node-dep)
+To do this, follow steps 1 - 3 in the [Single-Node Azure IoT Edge Deployment](#single-node-azure-iot-edge-deployment)
 section above. Then, instead of step 4, run the following command to setup
 the simulator:
 
