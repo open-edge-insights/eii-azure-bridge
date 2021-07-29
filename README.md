@@ -840,6 +840,17 @@ The `tenantId`, `clientId`, `clientSecret`, and `subscriptionId` should all have
 been obtained when following the instructions in the [Setting up AzureML](#setting-up-azureml)
 section.
 
+Please run the below steps when the `sample_onnx` UDF is failing with error like
+`The provided client secret keys are expired. Visit the Azure Portal to create new keys for your app`:
+
+```sh
+$ az login
+$ az ad sp create-for-rbac --sdk-auth --name ml-auth
+```
+The output of above command will be in json format. Please update the `AML_` env variables in `AzureBridge/.env`
+as per above table and follow the steps [Step 3](#step-3---configuring-azure-iot-deployment-manifest) and
+[Step 4](#step-4---deployment) to see the `sample_onnx` UDF working fine.
+
 **IMPORTANT NOTE:**
 
 If your system is behind a proxy, you may run into an issue where the download of
