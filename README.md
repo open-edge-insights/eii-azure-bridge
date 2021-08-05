@@ -454,7 +454,7 @@ Eg: To use MYRAID device in `config/templates/ia_video_analytics.template.json` 
             "settings": {
                 "createOptions": {
                     // ... omitted ..
-                    "User": "root,
+                    "User": "root",
                     "Env": [
                         // ... omitted ...
                     ]
@@ -468,9 +468,6 @@ Eg: To use MYRAID device in `config/templates/ia_video_analytics.template.json` 
 }
 ```
 
-   
-This will cause the container to be launched as `root` by default allowing you to
-subscribe to IPC sockets created as root.
 
 #### Expected Result
 
