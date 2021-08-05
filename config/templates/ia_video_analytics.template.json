@@ -15,7 +15,6 @@
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST",
                     "ETCD_HOST=$ETCD_HOST",
                     "ETCD_PREFIX=${ETCD_PREFIX}",
-                    "C_LOG_LEVEL=INFO",
                     "CertType=zmq",
                     "PUBLISHER_ENDPOINT=0.0.0.0:65013",
                     "AML_TENANT_ID=$AML_TENANT_ID",
@@ -25,7 +24,8 @@
                 "Volumes": {
                     "/dev": {},
                     "/EII/sockets": {},
-                    "/var/tmp": {}
+                    "/var/tmp": {},
+                    "/tmp": {}
                 },
                 "NetworkingConfig": {
                     "EndpointsConfig": {
@@ -33,29 +33,23 @@
                     }
                 },
                 "HostConfig": {
-                    "Privileged": true,
                     "NetworkMode": "host",
                     "Devices": [
-                        {
-                            "PathOnHost": "/dev/dri",
-                            "PathInContainer": "/dev/dri",
-                            "CgroupPermissions": "rwm"
-                        },
                         {
                             "PathOnHost": "/dev/",
                             "PathInContainer": "/dev/",
                             "CgroupPermissions": "rwm"
-                        },
-                        {
-                            "PathOnHost": "/dev/ion",
-                            "PathInContainer": "/dev/ion",
-                            "CgroupPermissions": "rwm"
                         }
+                    ],
+                    "DeviceCgroupRules": [
+                        "c 189:* rmw",
+                        "c 209:* rmw"
                     ],
                     "Binds": [
                         "/dev:/dev:rw",
                         "$EII_INSTALL_PATH/sockets:/EII/sockets:rw",
-                        "/var/tmp:/var/tmp:rw"
+                        "/var/tmp:/var/tmp:rw",
+                        "/tmp:/tmp:rw"
                     ],
                     "LogConfig": {
                         "Type": "",

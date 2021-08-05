@@ -437,21 +437,38 @@ $ python3 tools/serialize_eii_config.py example.template.json ../build/provision
 ```
 
 **IMPORTANT NOTE:**
+To run inference on MYRIAD device, root user permissions needs to be used at runtime. To enable root user at runtime in  
+either ia_video_ingestion, ia_video_analytics add `"User": "root"` key as below: command in the ia_video_ingestion or
+ia_video_analytics manifest files as required.
 
-If you wish to have the AzureBridge subscribe and bridge data over an IPC
-socket coming from either Video Ingestion or Video Analytics, then you must
-change the user which the container operates under. By default, the AzureBridge
-container is configured to run as the `eiiuser` created during the installation of
-EII on your edge system. Both Video Ingestion and Video Analytics operate as root
-in order to access various accelerators on your system. This results in the
-IPC sockets for the communication with these modules being created as root. To
-have the AzureBridge subscribe it must also run as root. To change this, do
-the following steps:
+Eg: To use MYRAID device in `config/templates/ia_video_analytics.template.json` manifest file, refer the below example
 
-1. Open your deployment manifest template
-2. Under the following JSON key path: `modulesContent/modules/AzureBridge/settings/createOptions`
-    delete the `User` key
+```javascript
+{
+// ... omitted ...
 
+    "modules": {
+        "ia_video_analytics": {
+            // ... omitted ...
+
+            "settings": {
+                "createOptions": {
+                    // ... omitted ..
+                    "User": "root,
+                    "Env": [
+                        // ... omitted ...
+                    ]
+                }
+            }
+
+            // ... omitted ...
+        }
+    }
+// ... omitted ...
+}
+```
+
+   
 This will cause the container to be launched as `root` by default allowing you to
 subscribe to IPC sockets created as root.
 
