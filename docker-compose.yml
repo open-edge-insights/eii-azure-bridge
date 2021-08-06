@@ -28,7 +28,7 @@ services:
     ia_azure_bridge:
         depends_on:
             - ia_common
-        image: ${DOCKER_REGISTRY}ia_azure_bridge:${EII_VERSION}
+        image: ${DOCKER_REGISTRY}openedgeinsights/ia_azure_bridge:${EII_VERSION}
         build:
             context: $PWD/../AzureBridge/modules/AzureBridge/
             dockerfile: $PWD/../AzureBridge/modules/AzureBridge/Dockerfile
@@ -37,6 +37,8 @@ services:
                 EII_UID: ${EII_UID}
                 EII_USER_NAME: ${EII_USER_NAME}
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+                UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+                CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
         ipc: "none"
         security_opt:
         - no-new-privileges
@@ -47,23 +49,29 @@ services:
         environment:
             AppName: "AzureBridge"
             CertType: "zmq"
+            no_proxy: ${ETCD_HOST}
+
+        networks:
+          - eii
 
     # Simple subscriber service to land on the Azure IoT Edge Runtime
     ia_azure_simple_subscriber:
-        image: ${DOCKER_REGISTRY}ia_azure_simple_subscriber:${EII_VERSION}
+        image: ${DOCKER_REGISTRY}openedgeinsights/ia_azure_simple_subscriber:${EII_VERSION}
         build:
             context: $PWD/../AzureBridge/modules/SimpleSubscriber/
             dockerfile: $PWD/../AzureBridge/modules/SimpleSubscriber/Dockerfile
             args:
-                UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
                 EII_VERSION: ${EII_VERSION}
                 DOCKER_REGISTRY: ${DOCKER_REGISTRY}
                 EII_UID: ${EII_UID}
                 EII_USER_NAME: ${EII_USER_NAME}
+                UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         ipc: "none"
         security_opt:
         - no-new-privileges
         healthcheck:
           test: ["CMD-SHELL", "exit", "0"]
           interval: 5m
-        
+        networks:
+          - eii
+

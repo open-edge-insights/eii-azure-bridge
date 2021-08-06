@@ -20,35 +20,55 @@
 
 ARG EII_VERSION
 ARG DOCKER_REGISTRY
-FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as ia_eiibase
-
+ARG ARTIFACTS="/artifacts"
 ARG EII_UID
 ARG EII_USER_NAME
-RUN useradd -r -u ${EII_UID} ${EII_USER_NAME}
+ARG UBUNTU_IMAGE_VERSION
+FROM ia_eiibase:$EII_VERSION as base
+FROM ia_common:$EII_VERSION as common
 
-ENV PY_ETCD3_VERSION cdc4c48bde88a795230a02aa574df84ed9ccfa52
-RUN git clone https://github.com/kragniz/python-etcd3 && \
-    cd python-etcd3 && \
-    git checkout -b ${PY_ETCD3_VERSION} ${PY_ETCD3_VERSION} && \
-    python3.6 setup.py install && \
-    cd .. && \
-    rm -rf python-etcd3
+FROM base as builder
+LABEL description="Azure Bridge image"
+
+ARG ARTIFACTS
+WORKDIR /app
+
+# Uninstalling python packages installed at /usr/lib/python3/dist-packages
+# in ia_eiibase image as some of them were considered while
+# installing the app's requirements.txt below
+RUN pip3 freeze | xargs pip3 uninstall -y
 
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
-
-FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
-
-FROM ia_eiibase
-
-COPY --from=common ${GO_WORK_DIR}/common/libs ${PY_WORK_DIR}/libs
-COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util
-COPY --from=common ${GO_WORK_DIR}/common/cmake ${PY_WORK_DIR}/common/cmake
-COPY --from=common /usr/local/lib /usr/local/lib
-COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
+RUN pip3 install --user -r requirements.txt
 
 COPY . .
 
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
+
+# Setting python env
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3-distutils python3-minimal python3-setuptools
+
+WORKDIR /app
+
+ARG EII_UID
+ARG EII_USER_NAME
+RUN adduser --quiet --disabled-password ${EII_USER_NAME}
+ARG ARTIFACTS
+ARG CMAKE_INSTALL_PREFIX
+ENV PYTHONPATH $PYTHONPATH:/app/.local/lib/python3.8/site-packages:/app:/app/.local/lib/python3.8/dist-packages
+COPY --from=builder /root/.local/lib .local/lib
+COPY --from=builder /app .
+
+COPY --from=common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
+COPY --from=common /eii/common/util/*.py util/
+COPY --from=common /root/.local/lib .local/lib
+
+RUN chown -R ${EII_UID} .local/lib/python3.8
+
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
+ENV PATH $PATH:/app/.local/bin
+
 HEALTHCHECK NONE
 
-CMD ["python3.6", "-u", "main.py"]
+CMD ["python3", "-u", "main.py"]

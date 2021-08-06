@@ -60,7 +60,8 @@ for service in args.services:
     if service == 'AzureBridge':
         if args.dev_mode:
             # Remove certificate mounts if in dev-mode
-            del template[service]['settings']['createOptions']['HostConfig']['Mounts']
+            settings = template[service]['settings']
+            del settings['createOptions']['HostConfig']['Mounts']
         if 'AzureBlobStorageonIoTEdge' in args.services:
             template[service]['env'] = {
                 'AZURE_STORAGE_CONNECTION_STRING': {
@@ -79,7 +80,8 @@ for service in args.services:
     if args.dev_mode:
         try:
             # Remove certificate mounts if in dev-mode
-            del template[service]['settings']['createOptions']['HostConfig']['Mounts']
+            settings = template[service]['settings']
+            del settings['createOptions']['HostConfig']['Mounts']
         except KeyError:
             # Passing this KeyError, because it means that there are no mounts
             # to remove for the service in order to run it in dev mode
@@ -87,10 +89,12 @@ for service in args.services:
 
     if 'routes' in template:
         r = template['routes']
-        base_manifest['modulesContent']['$edgeHub']['properties.desired']['routes'].update(r)
+        modules_content = base_manifest['modulesContent']
+        modules_content['$edgeHub']['properties.desired']['routes'].update(r)
 
     # Populate the template info into the deployment manifest
-    base_manifest['modulesContent']['$edgeAgent']['properties.desired']['modules'][service] = template[service]
+    edge_agent = base_manifest['modulesContent']['$edgeAgent']
+    edge_agent['properties.desired']['modules'][service] = template[service]
     if 'properties.desired' in template:
         props = template['properties.desired']
         base_manifest['modulesContent'][service] = {

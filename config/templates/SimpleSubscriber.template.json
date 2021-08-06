@@ -5,7 +5,7 @@
         "status": "running",
         "restartPolicy": "always",
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_azure_simple_subscriber:${EII_VERSION}",
+            "image": "${DOCKER_REGISTRY}openedgeinsights/ia_azure_simple_subscriber:${EII_VERSION}",
             "createOptions": {
                 "User": "${EII_UID}",
                 "HostConfig": {

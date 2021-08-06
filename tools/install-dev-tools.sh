@@ -48,14 +48,8 @@ function check_error() {
     fi
 }
 
-reqs_file="dev-requirements.txt"
-if [ ! -f "$reqs_file" ] ; then
-    reqs_file="./tools/$reqs_file"
-fi
-
 log_info "Installing Python dependencies"
-pip3 install -r $reqs_file
-pip3 install iotedgehubdev
+pip3 install iotedgedev iotedgehubdev
 check_error "Failed to install Python dependencies"
 
 CURL=`which curl`
@@ -76,8 +70,3 @@ check_error "Failed to login to Azure"
 log_info "Installing azure-iot extension"
 az extension add --name azure-iot
 check_error "Failed to install azure-iot Azure CLI extension"
-
-log_info "Installing azure-cli-iot-ext extension"
-az extension add --name azure-cli-iot-ext
-check_error "Failed to install azure-cli-iot-ext Azure CLI extension"
- 

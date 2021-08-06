@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Intel Corporation.
+# Copyright (c) 2021 Intel Corporation.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,8 @@ ARG EII_USER_NAME
 
 # Setting python dev env
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends python3.7 \
-                                               python3-pip \
-                                               python3-setuptools && \
+    apt-get install -y --no-install-recommends python3-pip && \
     ln -sf /usr/bin/pip3 /usr/bin/pip && \
-    ln -sf /usr/bin/python3.7 /usr/bin/python3 && \
     python3 -m pip install -U pip
 
 WORKDIR /app

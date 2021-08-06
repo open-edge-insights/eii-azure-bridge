@@ -38,7 +38,8 @@ async def config_listener(bs):
     while True:
         try:
             log.debug('Waiting to receive updated twin patch')
-            data = await bs.module_client.receive_twin_desired_properties_patch()
+            data = \
+                await bs.module_client.receive_twin_desired_properties_patch()
             log.debug(f'Updated Twin: {json.dumps(data, indent=4)}')
 
             log.info('Received updated configuration, applying now...')
@@ -96,7 +97,8 @@ def get_msgbus_config(app_name, config_mgr, dev_mode):
     :param str app_name: AzureBridge app name
     :param config_mgr: Config Manager Instance
     :param bool dev_mode: Flag for whether or not execution is in dev mode
-    :return: Tuple of (IPC topic->msgbus config dict, TCP topic->msgbus config dict)
+    :return: Tuple of (IPC topic->msgbus config dict,
+                       TCP topic->msgbus config dict)
     :rtype: tuple
     """
     num_of_subscribers = config_mgr.get_num_subscribers()

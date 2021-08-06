@@ -1,3 +1,8 @@
+**Contents**
+
+- [Azure Bridge Module](#azure-bridge-module)
+  - [Running Unit Tests](#running-unit-tests)
+
 Azure Bridge Module
 =======================
 
@@ -19,6 +24,11 @@ documented in the root directory of the Azure Bridge service.
 
 To run the unit tests for the Azure Bridge, first install the Azure
 Bridge python dependencies:
+
+Note: It is highly recommended that you use a python virtual environment to 
+install the python packages, so that the system python installation doesn't 
+get altered. Details on setting up and using python virtual environment can 
+be found here: https://www.geeksforgeeks.org/python-virtual-environment/ 
 
 ```sh
 $ sudo -H -E pip3 install -r requirements.txt

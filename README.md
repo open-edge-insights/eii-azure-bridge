@@ -1,3 +1,34 @@
+**Contents**
+
+- [Azure Bridge](#azure-bridge)
+  - [Pre-Requisites / Setup](#pre-requisites--setup)
+    - [Azure Cloud Setup](#azure-cloud-setup)
+      - [Setting up AzureML](#setting-up-azureml)
+        - [Pushing a Model to AzureML](#pushing-a-model-to-azureml)
+    - [Development System Setup](#development-system-setup)
+  - [Build and Push EII Containers](#build-and-push-eii-containers)
+  - [Single-Node Azure IoT Edge Deployment](#single-node-azure-iot-edge-deployment)
+    - [Step 1 - Provisioning](#step-1---provisioning)
+      - [Expected Result](#expected-result)
+    - [Step 2 - Configuring EII](#step-2---configuring-eii)
+      - [Expected Result](#expected-result-1)
+    - [Step 3 - Configuring Azure IoT Deployment Manifest](#step-3---configuring-azure-iot-deployment-manifest)
+      - [Expected Result](#expected-result-2)
+    - [Step 4 - Deployment](#step-4---deployment)
+      - [Expected Results](#expected-results)
+    - [Helpful Debugging Commands](#helpful-debugging-commands)
+    - [Final Notes](#final-notes)
+  - [Configuration](#configuration)
+    - [Azure Bridge](#azure-bridge-1)
+    - [Sample EII ONNX UDF](#sample-eii-onnx-udf)
+    - [Simple Subscriber](#simple-subscriber)
+    - [EII ETCD Pre-Load](#eii-etcd-pre-load)
+    - [Azure Blob Storage](#azure-blob-storage)
+    - [Azure Deployment Manifest](#azure-deployment-manifest)
+  - [Azure IoT Edge Simulator](#azure-iot-edge-simulator)
+  - [Supported EII Services](#supported-eii-services)
+  - [Additional Resources](#additional-resources)
+
 # Azure Bridge
 
 > **NOTE:** The source code for this project must be placed under the `IEdgeInsights`
@@ -41,12 +72,12 @@ you are going to deploy the Azure Bridge on.
 
 The following sections cover the setup for the first two environments listed.
 Setting up your system for a single-node deployment will be covered in the
-[Single-Node Azure IoT Edge Deployment](#single-node-dep) section below.
+[Single-Node Azure IoT Edge Deployment](#single-node-azure-iot-edge-deployment) section below.
 
 > **NOTE:** When you deploy with Azure IoT Hub you will also need to configure
 > the Azure IoT Edge Runtime and EII on your target device.
 
-### <a name="az-cloud-setup"></a>Azure Cloud Setup
+### Azure Cloud Setup
 
 Prior to using the Azure Bridge there are a few cloud services in Azure
 which must be initialized.
@@ -112,7 +143,7 @@ notebook provided my Microsoft to train a simple model to push to your AzureML W
 
 Also, you can find pre-trained models in the [ONNX Model Zoo](https://github.com/onnx/models).
 
-### <a name="dev-sys-setup"></a>Development System Setup
+### Development System Setup
 
 The development system will be used for the following actions:
 
@@ -133,6 +164,11 @@ the Builder script in the `../build/` directory.
 Once this is completed, install the required components to user the Azure CLI
 and development tools. The script `./tools/install-dev-tools.sh` automates this
 process. To run this script, execute the following command:
+
+**Note**: It is highly recommended that you use a python virtual environment to
+install the python packages, so that the system python installation doesn't
+get altered. Details on setting up and using python virtual environment can
+be found here: https://www.geeksforgeeks.org/python-virtual-environment/
 
 ```sh
 $ sudo -H -E -u ${USER} ./tools/install-dev-tools.sh
@@ -177,7 +213,7 @@ Please see the list of supported services at the end of this README for the
 services which can be pushed to an ACR instance. Not all EII services are
 supported by and validated to work with the Azure Bridge.
 
-## <a name="eii-build-push"></a>Build and Push EII Containers
+## Build and Push EII Containers
 
 > **NOTE:** By following the steps below, the Azure Bridge and Simple
 > Subscriber Azure IoT Modules will be pushed to your ACR instance as well.
@@ -195,14 +231,14 @@ Container Registry.
 Next, execute the following commands:
 
 ```sh
-$ python3 builder.py -f video-streaming-azure.yml
-$ docker-compose build
-$ docker-compose push
+$ python3 builder.py -f usecases/video-streaming-azure.yml
+$ docker-compose -f docker-compose-build.yml build
+$ docker-compose -f docker-compose-push.yml push
 ```
 
 For more detailed instructions on this process, see the EII README and User Guide.
 
-## <a name="single-node-dep"></a>Single-Node Azure IoT Edge Deployment
+## Single-Node Azure IoT Edge Deployment
 
 > **NOTE:** Outside of the Azure ecosystem, EII can be deployed and communicate
 > across nodes. In the Azure IoT Edge ecosystem this is not possible with EII.
@@ -236,9 +272,9 @@ the following steps:
 4. Deployment
 
 Prior to deploying a single Azure IoT Edge node you must have already
-configured your Azure cloud instance (see instructions in the [Azure Cloud Setup](#az-cloud-setup)
+configured your Azure cloud instance (see instructions in the [Azure Cloud Setup](#azure-cloud-setup)
 section). Additionally, you need to have already built and pushed the EII services to your
-Azure Container Registry (follow the instructions in the [Build and Push EII Containers](#eii-build-push)
+Azure Container Registry (follow the instructions in the [Build and Push EII Containers](##build-and-push-eii-containers)
 section).
 
 Provided you have met these two prerequisites, follow the steps below to do a
@@ -357,7 +393,7 @@ create your Azure IoT Hub deployment manifest. The Azure Bridge provides some
 convenience scripts to ease this process.
 
 > **NOTE:** These steps should be done from your development system setup in
-> the [Development System Setup](#dev-sys-setup) section. Note, that for testing
+> the [Development System Setup](#development-system-setup) section. Note, that for testing
 > and development purposes, these could be the same system.
 
 To generate your deployment manifest template, execute the following command:
@@ -401,23 +437,37 @@ $ python3 tools/serialize_eii_config.py example.template.json ../build/provision
 ```
 
 **IMPORTANT NOTE:**
+To run inference on MYRIAD device, root user permissions needs to be used at runtime. To enable root user at runtime in  
+either ia_video_ingestion, ia_video_analytics add `"User": "root"` key as below: command in the ia_video_ingestion or
+ia_video_analytics manifest files as required.
 
-If you wish to have the AzureBridge subscribe and bridge data over an IPC
-socket coming from either Video Ingestion or Video Analytics, then you must
-change the user which the container operates under. By default, the AzureBridge
-container is configured to run as the `eiiuser` created during the installation of
-EII on your edge system. Both Video Ingestion and Video Analytics operate as root
-in order to access various accelerators on your system. This results in the
-IPC sockets for the communication with these modules being created as root. To
-have the AzureBridge subscribe it must also run as root. To change this, do
-the following steps:
+Eg: To use MYRAID device in `config/templates/ia_video_analytics.template.json` manifest file, refer the below example
 
-1. Open your deployment manifest template
-2. Under the following JSON key path: `modulesContent/modules/AzureBridge/settings/createOptions`
-    delete the `User` key
+```javascript
+{
+// ... omitted ...
 
-This will cause the container to be launched as `root` by default allowing you to
-subscribe to IPC sockets created as root.
+    "modules": {
+        "ia_video_analytics": {
+            // ... omitted ...
+
+            "settings": {
+                "createOptions": {
+                    // ... omitted ..
+                    "User": "root",
+                    "Env": [
+                        // ... omitted ...
+                    ]
+                }
+            }
+
+            // ... omitted ...
+        }
+    }
+// ... omitted ...
+}
+```
+
 
 #### Expected Result
 
@@ -427,7 +477,7 @@ file and a valid `config/*.amd64.json` file.
 If, for some reason, these commands fail, revisit Step 2 and make sure all of your
 environmental variables are set correctly. And if that does not resolve your issue,
 verify that your development system is setup correctly by revisiting the
-[Development System Setup](#dev-sys-setup) section.
+[Development System Setup](#development-system-setup) section.
 
 ### Step 4 - Deployment
 
@@ -571,8 +621,8 @@ For ZeroMQ TCP subscribers, like the example shown above, the `EndPoint` in
 the subscriber's configuration object has to be overridden through an
 environmental variable. The reason for this, is that the Azure Bridge
 service runs attached to a bridged Docker network created by the Azure IoT
-Edge Runtime, whereas the other EII services run on the host's network. In
-order to subscribe, the Azure Bridge must use the host's IP address to
+Edge Runtime, whereas the other EII services run on the different bridged network.
+In order to subscribe, the Azure Bridge must use the host's IP address to
 connect.
 
 If the Azure Bridge is only subscribing to a single service, then the
@@ -582,7 +632,8 @@ For instance, if the configuration example had another object in the Subscribers
 list which had the `Name` key set to `example_name`, then the environmental
 variable name would need to be `SUBSCRIBER_example_name_ENDPOINT`. Essentially,
 for multiple subscribers the `Name` property must be in the environmental
-variable name between the `SUBSCRIBER_` and `_ENDPOINT`.
+variable name between the `SUBSCRIBER_` and `_ENDPOINT`. The same holds true for
+`CLIENT_ENDPOINT` and `CLIENT_<Name>_ENDPOINT` usage of environmental variables too.
 
 In either case, the value of the environmental variable must be set to
 `$HOST_IP:<PORT>` where you must fill in what the desired port is. Note that the
@@ -603,6 +654,8 @@ TCP, add the environmental variable `PUBLISHER_ENDPOINT=0.0.0.0:<PORT>` to the
 environmental variable configuration of the serivce's module configuration in
 your deployment manifest (note: be sure to replace the port).  Or if there are
 multiple topics being published, use the variable `PUBLISHER_<Name>_ENDPOINT`.
+The same holds true for `SERVER_ENDPOINT` and `SERVER_<Name>_ENDPOINT` usage
+of environmental variables too.
 
 These variables have already been set for to have the Azure Bridge subscribe
 to a single instance of the Video Analytics service. This configuration can be
@@ -801,6 +854,17 @@ The `tenantId`, `clientId`, `clientSecret`, and `subscriptionId` should all have
 been obtained when following the instructions in the [Setting up AzureML](#setting-up-azureml)
 section.
 
+Please run the below steps when the `sample_onnx` UDF is failing with error like
+`The provided client secret keys are expired. Visit the Azure Portal to create new keys for your app`:
+
+```sh
+$ az login
+$ az ad sp create-for-rbac --sdk-auth --name ml-auth
+```
+The output of above command will be in json format. Please update the `AML_` env variables in `AzureBridge/.env`
+as per above table and follow the steps [Step 3](#step-3---configuring-azure-iot-deployment-manifest) and
+[Step 4](#step-4---deployment) to see the `sample_onnx` UDF working fine.
+
 **IMPORTANT NOTE:**
 
 If your system is behind a proxy, you may run into an issue where the download of
@@ -981,13 +1045,13 @@ see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/module-composit
 ## Azure IoT Edge Simulator
 
 Microsoft provides a simluator for the Azure IoT Edge Runtime. During the
-setup of your development system (covered in the [Development System Setup](#dev-sys-setup)
+setup of your development system (covered in the [Development System Setup](#development-system-setup)
 section), the simulator is automatically installed on your system.
 
 Additionally, the Azure Bridge provides the `./tools/run-simulator.sh` script
 to easily use the simulator with the bridge.
 
-To do this, follow steps 1 - 3 in the [Single-Node Azure IoT Edge Deployment](#single-node-dep)
+To do this, follow steps 1 - 3 in the [Single-Node Azure IoT Edge Deployment](#single-node-azure-iot-edge-deployment)
 section above. Then, instead of step 4, run the following command to setup
 the simulator:
 
@@ -1019,7 +1083,7 @@ on the same system. If you are using the same system, first stop the Azure IoT E
 Runtime daemon with the following command:
 
 ```sh
-$ sudo systemctl stop iotedge
+$ sudo iotedge system stop
 ```
 
 Then, run the simulator as specified above.

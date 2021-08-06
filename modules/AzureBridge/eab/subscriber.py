@@ -53,7 +53,8 @@ async def upload_frame(bs, container_name, meta_data, blob):
     blob_name = f'{meta_data["img_handle"]}.{ext}'
 
     log.debug(f'Creating blob client for {blob_name}')
-    blob_client = bs.bsc.get_blob_client(container=container_name, blob=blob_name)
+    blob_client = \
+        bs.bsc.get_blob_client(container=container_name, blob=blob_name)
 
     log.info(f'Uploading blob {blob_name}')
     # TODO: Add thread pool for these uploads (WE'RE GOING FOR SPEED!)
@@ -139,6 +140,6 @@ async def emb_subscriber_listener(bs, subscriber, output_name, container_name):
             await bs.module_client.send_message_to_output(
                     output_msg, output_name)
     except asyncio.CancelledError:
-       log.info('Subscriber routine cancelled')
+        log.info('Subscriber routine cancelled')
     except Exception:
         log.error(f'Unexpected error in listener: {tb.format_exc()}')

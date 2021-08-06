@@ -113,7 +113,7 @@ class BridgeState:
             self.dev_mode = self.config_mgr.is_dev_mode()
             self.app_name = self.config_mgr.get_app_name()
         except Exception as ex:
-            self.log.error(f'Exception: {ex}')
+            self.log.exception(f'Exception: {ex}')
             raise ex
 
         self.log.debug('Finished initializing config manager')
@@ -181,7 +181,7 @@ class BridgeState:
                 self.log.info(f'Creating subscriber {in_topic}')
                 self.log.debug(f'{in_topic} config: {topic_conf}')
                 assert 'az_output_topic' in topic_conf, \
-                        'Missing az_output_topic'
+                       'Missing az_output_topic'
 
                 if self.bsc is not None and \
                         'az_blob_container_name' in topic_conf:
@@ -204,9 +204,10 @@ class BridgeState:
                 self.subscribers.append(subscriber)
                 listener_coroutines.append(emb_subscriber_listener(
                     self, subscriber, topic_conf['az_output_topic'], cn))
-        except Exception:
+        except Exception as ex:
             # Clean up the message bus contexts
             self._cleanup_msgbus_ctxs()
+            self.log.exception(f'Exception: {ex}')
 
             # Re-raise whatever exception just occurred
             raise
@@ -239,7 +240,7 @@ class BridgeState:
                                     cert_key='/run/secrets/etcd_root_key',
                                     cert_cert='/run/secrets/etcd_root_cert')
         except Exception as e:
-            self.log.error(f'Exception raised when creating etcd'
+            self.log.exception(f'Exception raised when creating etcd'
                            f'client instance with error: {e}')
             raise e
         resp = etcd.get_all()

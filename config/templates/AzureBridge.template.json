@@ -6,7 +6,7 @@
         "restartPolicy": "always",
         "env": { },
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_azure_bridge:${EII_VERSION}",
+            "image": "${DOCKER_REGISTRY}openedgeinsights/ia_azure_bridge:${EII_VERSION}",
             "createOptions": {
                 "User": "${EII_UID}",
                 "Env": [
