@@ -538,7 +538,7 @@ For more debugging info, see the following section.
 
 If you are encountering issues, the following commands can help with debugging:
 
-* **Azure IoT Edge Runtime Daemon Logs:** `journalctl -u iotedge -f`
+* **Azure IoT Edge Runtime Daemon Logs:** `sudo iotedge system logs -- -f`
 * **Container Logs:** `docker logs -f <CONTAINER-NAME>`
 
 ### Final Notes
