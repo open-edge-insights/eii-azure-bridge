@@ -23,6 +23,7 @@ IoT Edge deployment manifest template.
 import os
 import json
 import argparse
+import sys
 
 
 # Parse command line arguments
@@ -37,19 +38,30 @@ assert os.path.exists(args.manifest), f'{args.manifest} does not exist'
 
 print('[INFO] Populating EII configuration into Azure manifest')
 
-# Load JSON files
-with open(args.config, 'r') as f:
-    config = json.load(f)
+def is_safe_path(basedir, path, follow_symlinks=True):
+    # resolves symbolic links
+    if follow_symlinks:
+        matchpath = os.path.realpath(path)
+    else:
+        matchpath = os.path.abspath(path)
+    return basedir == os.path.commonpath((basedir, matchpath))
 
-with open(args.manifest, 'r') as f:
-    manifest = json.load(f)
+# Load JSON files
+if is_safe_path(os.getcwd(), args.config):
+    with open(args.config, 'r') as f:
+        config = json.load(f)
+
+if is_safe_path(os.getcwd(), args.manifest):
+    with open(args.manifest, 'r') as f:
+        manifest = json.load(f)
 
 # Serialize and populate the manifest
 config_str = json.dumps(config)
 eii_azure_bridge = manifest['modulesContent']['AzureBridge']
 eii_azure_bridge['properties.desired']['eii_config'] = config_str
 
-with open(args.manifest, 'w') as f:
-    json.dump(manifest, f, indent=4)
+if is_safe_path(os.getcwd(), args.manifest):
+    with open(args.manifest, 'w') as f:
+        json.dump(manifest, f, indent=4)
 
 print('[INFO] Azure manifest populated')
