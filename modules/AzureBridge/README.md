@@ -25,13 +25,13 @@ documented in the root directory of the Azure Bridge service.
 To run the unit tests for the Azure Bridge, first install the Azure
 Bridge python dependencies:
 
-Note: It is highly recommended that you use a python virtual environment to 
-install the python packages, so that the system python installation doesn't 
-get altered. Details on setting up and using python virtual environment can 
-be found here: https://www.geeksforgeeks.org/python-virtual-environment/ 
+Note: It is highly recommended that you use a python virtual environment to
+install the python packages, so that the system python installation doesn't
+get altered. Details on setting up and using python virtual environment can
+be found here: <https://www.geeksforgeeks.org/python-virtual-environment/>
 
 ```sh
-$ sudo -H -E pip3 install -r requirements.txt
+sudo -H -E pip3 install -r requirements.txt
 ```
 
 Next, setup your `PYTHONPATH` to contian the necessary EII Python libraries for
@@ -42,13 +42,13 @@ the test:
 > or C have been installed on your system.
 
 ```sh
-$ export PYTHONPATH=${PYTHONPATH}:../../../common:../../../common/libs/ConfigManager/python
+export PYTHONPATH=${PYTHONPATH}:../../../common:../../../common/libs/ConfigManager/python
 ```
 
 Next, run the unit tests with the following Python command:
 
 ```sh
-$ python3 -m unittest discover
+python3 -m unittest discover
 ```
 
 If everything runs successfully, you should see the following output:

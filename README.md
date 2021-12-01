@@ -39,20 +39,20 @@ The Azure Bridge serves as a connector between EII and the Microsoft
 Azure IoT Edge Runtime ecosystem. It does this by allowing the following
 forms of bridging:
 
-* Publishing of incoming data from EII onto the Azure IoT Edge Runtime bus
-* Storage of incoming images from the EII video analytics pipeline into a
+- Publishing of incoming data from EII onto the Azure IoT Edge Runtime bus
+- Storage of incoming images from the EII video analytics pipeline into a
     local instance of the Azure Blob Storage service
-* Translation of configuration for EII from the Azure IoT Hub digital twin
+- Translation of configuration for EII from the Azure IoT Hub digital twin
     for the bridge into ETCD via the EII Configuration Manager APIs
 
 This code base is structured as an Azure IoT Edge Runtime module. It includes:
 
-* Deployment templates for deploying the EII video analytics pipeline with the
+- Deployment templates for deploying the EII video analytics pipeline with the
     bridge on top of the Azure IoT Edge Runtime
-* The Azure Bridge module
-* A simple subscriber on top of the Azure IoT Edge Runtime for showcasing the
+- The Azure Bridge module
+- A simple subscriber on top of the Azure IoT Edge Runtime for showcasing the
     end-to-end transmission of data
-* Various utilities and helper scripts for deploying and developing on the
+- Various utilities and helper scripts for deploying and developing on the
     Azure Bridge
 
 The following sections will cover the configuration/usage of the Azure
@@ -94,9 +94,9 @@ To create these instances, follow the guides provided by Microsoft below:
 > Azure Resource Group. This is a good practice as it makes for easy clean up
 > of your Azure cloud environment.
 
-* [Create Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)
-* [Create Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-create-through-portal)
-* [Register an Azure IoT Device](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device)
+- [Create Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal)
+- [Create Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-create-through-portal)
+- [Register an Azure IoT Device](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device)
 
 > **IMPORTANT:**
 > In the tutorials above you will receive credentials/connection strings for your
@@ -124,7 +124,7 @@ During the setup process provided for step 2 above, you will run a command simil
 to the following:
 
 ```sh
-$ az ad sp create-for-rbac --sdk-auth --name ml-auth
+az ad sp create-for-rbac --sdk-auth --name ml-auth
 ```
 
 After executing this command you will see a JSON blob printed to your console
@@ -147,9 +147,9 @@ Also, you can find pre-trained models in the [ONNX Model Zoo](https://github.com
 
 The development system will be used for the following actions:
 
-* Building and pushing the EII containers (including the bridge) to your Azure Container Registry
-* Creating your Azure IoT Hub deployment manifest
-* Deploying your manifest to a single node
+- Building and pushing the EII containers (including the bridge) to your Azure Container Registry
+- Creating your Azure IoT Hub deployment manifest
+- Deploying your manifest to a single node
 
 For testing purposes, your development system can serve to do the actions detailed
 above, as well as being the device you use for your single-node deployment. This
@@ -168,16 +168,17 @@ process. To run this script, execute the following command:
 **Note**: It is highly recommended that you use a python virtual environment to
 install the python packages, so that the system python installation doesn't
 get altered. Details on setting up and using python virtual environment can
-be found here: https://www.geeksforgeeks.org/python-virtual-environment/
+be found here: <https://www.geeksforgeeks.org/python-virtual-environment/>
 
 ```sh
-$ sudo -H -E -u ${USER} ./tools/install-dev-tools.sh
+sudo -H -E -u ${USER} ./tools/install-dev-tools.sh
 ```
 
 Please set the `PATH` environmental variable as below in the terminal
 where you are using `iotedgedev` and `iotedgehubdev` commands:
+
 ```sh
-$ export PATH=~/.local/bin:$PATH
+export PATH=~/.local/bin:$PATH
 ```
 
 > **NOTE:** The `-u ${USER}` flag above allows the Azure CLI to launch your
@@ -194,15 +195,15 @@ Azure instance.
 
 This script will install the following tools:
 
-* Azure CLI
-* Azure CLI IoT Edge/Hub Extensions
-* Azure `iotedgehubdev` development tool
-* Azure `iotedgedev` development tool
+- Azure CLI
+- Azure CLI IoT Edge/Hub Extensions
+- Azure `iotedgehubdev` development tool
+- Azure `iotedgedev` development tool
 
 Next, login to your Azure Container Registry with the following command:
 
 ```sh
-$ az acr login --name <ACR Name>
+az acr login --name <ACR Name>
 ```
 
 > **NOTE:** Fill in `<ACR Name>` with the name of your Azure Container Registry
@@ -231,9 +232,9 @@ Container Registry.
 Next, execute the following commands:
 
 ```sh
-$ python3 builder.py -f usecases/video-streaming-azure.yml
-$ docker-compose -f docker-compose-build.yml build
-$ docker-compose -f docker-compose-push.yml push
+python3 builder.py -f usecases/video-streaming-azure.yml
+docker-compose -f docker-compose-build.yml build
+docker-compose -f docker-compose-push.yml push
 ```
 
 For more detailed instructions on this process, see the EII README and User Guide.
@@ -311,7 +312,7 @@ that all of the EII containers have been stopped. You can do this by going to
 the `build/` directory in the EII source code and running the following command:
 
 ```sh
-$ docker-compose down
+docker-compose down
 ```
 
 This will stop and remove all of the previously running EII containers, allowing
@@ -348,24 +349,24 @@ exist, run this script based on the instructions provided in the EII README.
 Next, configure the `build/.env` file. You must make sure to modify the following
 values in the `.env` file:
 
-* `DOCKER_REGISTRY` - This should have been set when building/pushing the EII
+- `DOCKER_REGISTRY` - This should have been set when building/pushing the EII
     containers to your ACR instance. Make sure it is set to the URL for your
     ACR instance.
-* `HOST_IP` - This must be the IP address of the edge node you are deploying
+- `HOST_IP` - This must be the IP address of the edge node you are deploying
     your containers to
-* `ETCD_HOST` - This should be set to the same value as your `HOST_IP` address
-* `DEV_MODE` - Set this to the same value you used when provisioning your edge node
+- `ETCD_HOST` - This should be set to the same value as your `HOST_IP` address
+- `DEV_MODE` - Set this to the same value you used when provisioning your edge node
     in the previous step
 
 Next, in the `AzureBridge/` source directory, modify the `.env` file. Make
 sure to set the following values:
 
-* `EII_CERTIFICATES`              - The directory with the EII certificates on your edge system
-* `AZ_CONTAINER_REGISTY_USERNAME` - User name for the container registry login (obtained during creation)
-* `AZ_CONTAINER_REGISTY_PASSWORD` - Password for the container registry login (obtained during creation)
-    * **IMPORTANT NOTE:** Make sure to surround the password in single quotes, i.e. `'`, because bash
+- `EII_CERTIFICATES`              - The directory with the EII certificates on your edge system
+- `AZ_CONTAINER_REGISTY_USERNAME` - User name for the container registry login (obtained during creation)
+- `AZ_CONTAINER_REGISTY_PASSWORD` - Password for the container registry login (obtained during creation)
+  - **IMPORTANT NOTE:** Make sure to surround the password in single quotes, i.e. `'`, because bash
         may escape certain characters when the file is read, leading to incorrect configuration
-* `AZ_BLOB_STORAGE_ACCOUNT_NAME`  - **(OPTIONAL)** User name for the local Azure Blob Storage instance
+- `AZ_BLOB_STORAGE_ACCOUNT_NAME`  - **(OPTIONAL)** User name for the local Azure Blob Storage instance
 
 **IMPORTANT NOTE #1:**
 
@@ -399,7 +400,7 @@ convenience scripts to ease this process.
 To generate your deployment manifest template, execute the following command:
 
 ```sh
-$ ./tools/generate-deployment-manifest.sh example AzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
+./tools/generate-deployment-manifest.sh example AzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
 ```
 
 > **NOTE:** If you are using Azure Blob Storage, include `AzureBlobStorageonIoTEdge`
@@ -425,7 +426,7 @@ modify this file, you must regenerate the `./config/example.amd64.json` file.
 To do this, execute the following command:
 
 ```sh
-$ iotedgedev genconfig -f example.template.json
+iotedgedev genconfig -f example.template.json
 ```
 
 If you wish to modify your `eii_config.json` file after generating your template,
@@ -433,7 +434,7 @@ you can re-add this to the Azure Bridge digital twin by running the following
 command:
 
 ```sh
-$ python3 tools/serialize_eii_config.py example.template.json ../build/provision/config/eii_config.json
+python3 tools/serialize_eii_config.py example.template.json ../build/provision/config/eii_config.json
 ```
 
 **IMPORTANT NOTE:**
@@ -468,7 +469,6 @@ Eg: To use MYRAID device in `config/templates/ia_video_analytics.template.json` 
 }
 ```
 
-
 #### Expected Result
 
 If all of the commands above ran correctly, then you will have a valid `*.template.json`
@@ -485,7 +485,7 @@ Now that you have generated your deployment manifest, deploy the modules to your
 Azure IoT Edge Device using the Azure CLI command shown below:
 
 ```sh
-$ az iot edge set-modules -n <azure-iot-hub-name> -d <azure-iot-edge-device-name> -k config/<deployment-manifest>
+az iot edge set-modules -n <azure-iot-hub-name> -d <azure-iot-edge-device-name> -k config/<deployment-manifest>
 ```
 
 If this command run successfully, then you will see a large JSON string print out
@@ -529,7 +529,7 @@ If everything is running smoothly, you should see messages being printed in the
 Simple Subscriber service using the following command:
 
 ```sh
-$ docker logs -f SimpleSubscriber
+docker logs -f SimpleSubscriber
 ```
 
 For more debugging info, see the following section.
@@ -538,8 +538,8 @@ For more debugging info, see the following section.
 
 If you are encountering issues, the following commands can help with debugging:
 
-* **Azure IoT Edge Runtime Daemon Logs:** `journalctl -u iotedge -f`
-* **Container Logs:** `docker logs -f <CONTAINER-NAME>`
+- **Azure IoT Edge Runtime Daemon Logs:** `journalctl -u iotedge -f`
+- **Container Logs:** `docker logs -f <CONTAINER-NAME>`
 
 ### Final Notes
 
@@ -547,10 +547,10 @@ When deploying with Azure IoT Edge Runtime there are many security consideration
 to be taken into account. Please consult the following Microsoft resources regarding
 the security in your deployments.
 
-* [Securing Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/security)
-* [IoT Edge Security Manager](https://docs.microsoft.com/en-us/azure/iot-edge/iot-edge-security-manager)
-* [IoT Edge Certificates](https://docs.microsoft.com/en-us/azure/iot-edge/iot-edge-certs)
-* [Securing the Intelligent Edge blob post](https://azure.microsoft.com/en-us/blog/securing-the-intelligent-edge/)
+- [Securing Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/security)
+- [IoT Edge Security Manager](https://docs.microsoft.com/en-us/azure/iot-edge/iot-edge-security-manager)
+- [IoT Edge Certificates](https://docs.microsoft.com/en-us/azure/iot-edge/iot-edge-certs)
+- [Securing the Intelligent Edge blob post](https://azure.microsoft.com/en-us/blog/securing-the-intelligent-edge/)
 
 ## Configuration
 
@@ -667,9 +667,9 @@ modules. Or, you can see this configuration being set in the,
 **ZeroMQ IPC Subscription Implications**
 
 If AzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure that
-* AzureBridge app's subscriber interfaces configuration matches to that of the 
+- AzureBridge app's subscriber interfaces configuration matches to that of the
   publisher app's publisher interfaces configuration in `build/provision/config/eii_config.json`
-  file.  Below is an example of the AzureBridge interface configuration subscribing to the 
+  file.  Below is an example of the AzureBridge interface configuration subscribing to the
   publications coming from the VideoIngestion container.
   
   ```javascript
@@ -702,23 +702,21 @@ If AzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure that
     }
     ```
 
-* Please follow `Step 3 - Configuring Azure IoT Deployment Manifest` above to generate the manifest
-  template file and deployment manifest files. Ensure to remove all the `PUBLISHER_ENDPOINT`, 
-  `PUBLISHER_<Name>_ENDPOINT`, `SUBSCRIBER_ENDPOINT` and `SUBSCRIBER_<Name>_ENDPOINT` environmental 
-  variables from the generated deployment manifest template file i.e., [example.template.json](./example.template.json) 
-  as these ENVs are not applicable for IPC configuration. Additionally, update the 
-  [example.template.json](./example.template.json) as per the recommendations mentioned in the 
+- Please follow `Step 3 - Configuring Azure IoT Deployment Manifest` above to generate the manifest
+  template file and deployment manifest files. Ensure to remove all the `PUBLISHER_ENDPOINT`,
+  `PUBLISHER_<Name>_ENDPOINT`, `SUBSCRIBER_ENDPOINT` and `SUBSCRIBER_<Name>_ENDPOINT` environmental
+  variables from the generated deployment manifest template file i.e., [example.template.json](./example.template.json)
+  as these ENVs are not applicable for IPC configuration. Additionally, update the
+  [example.template.json](./example.template.json) as per the recommendations mentioned in the
   `Important Note` section for IPC configuration. Please re-generate the deployment manifest file (`config/example.amd64.json`)
   by running the below command:
   
   ```sh
-  $ iotedgedev genconfig -f example.template.json
+  iotedgedev genconfig -f example.template.json
   ```
 
-
-* Please follow `Step 4 - Deployment` above for deployment
+- Please follow `Step 4 - Deployment` above for deployment
   
-
 Below is an example digital twin for the Azure Bridge:
 
 ```json
@@ -772,12 +770,12 @@ The Azure Blob Storage service places strict requirements on the name of the,
 `az_blob_container_name` configuration key. According to the Azure documentation,
 the name must a valid DNS name adhering to the following rules:
 
-* Container names must start or end with a letter or number, and can contain
+- Container names must start or end with a letter or number, and can contain
     only letters, numbers, and the dash (-) character.
-* Every dash (-) character must be immediately preceded and followed by a
+- Every dash (-) character must be immediately preceded and followed by a
     letter or number; consecutive dashes are not permitted in container names.
-* All letters in a container name must be lowercase.
-* Container names must be from 3 through 63 characters long.
+- All letters in a container name must be lowercase.
+- Container names must be from 3 through 63 characters long.
 
 For more information on the name conventions/restrictions for Azure Blob Storage
 container names, see [this](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata)
@@ -787,8 +785,8 @@ page of the Azure documentation.
 
 EII provides a sample UDF which utilizes the ONNX RT to execute your machine learning /
 deep learning model. It also supports connecting to an AzureML Workspace to download
-the model and then run it. The source code for this UDF is in 
-`[WORKDIR]/IEdgeInsights/common/video/udfs/python/sample_onnx/`, please also refer 
+the model and then run it. The source code for this UDF is in
+`[WORKDIR]/IEdgeInsights/common/video/udfs/python/sample_onnx/`, please also refer
 `Sample ONNX UDF` section in `[WORKDIR]/IEdgeInsights/common/video/udfs/README.md` for doing
 the required configuration for running this UDF.
 
@@ -798,7 +796,7 @@ instance. Please ensure to remove the existing PCB filter/classifier UDFs or any
 in Video Ingestion and Video Analytics config keys in `build/provision/config/eii_config.json` as
 we are doing some basic pre-processing, inferencing and post-processing in the ONNX UDF itself.
 Then, you need to modify the environmental variables in the `AzureBridge/.env` file to provide the connection
-information to enable the UDF to download your model from AzureML. Make sure to follow the 
+information to enable the UDF to download your model from AzureML. Make sure to follow the
 instructions provided in the [Setting up AzureML](#setting-up-azureml) section above to configure your
 workspace correctly so that the UDF can download your model.
 
@@ -860,9 +858,10 @@ Please run the below steps when the `sample_onnx` UDF is failing with error like
 `The provided client secret keys are expired. Visit the Azure Portal to create new keys for your app`:
 
 ```sh
-$ az login
-$ az ad sp create-for-rbac --sdk-auth --name ml-auth
+az login
+az ad sp create-for-rbac --sdk-auth --name ml-auth
 ```
+
 The output of above command will be in json format. Please update the `AML_` env variables in `AzureBridge/.env`
 as per above table and follow the steps [Step 3](#step-3---configuring-azure-iot-deployment-manifest) and
 [Step 4](#step-4---deployment) to see the `sample_onnx` UDF working fine.
@@ -961,17 +960,17 @@ If you wish to have the Azure Blob Storage service save the images to your
 host filesystem, then you must do the following:
 
 1. Create the directory to save the data on your host filesystem, it is recommended
-    to use the following commands:
+   to use the following commands:
 
     ```sh
-    $ sudo mkdir /opt/intel/eii/data/azure-blob-storage
-    $ sudo chown eiiuser:eiiuser /opt/intel/eii/data/azure-blob-storage
+    sudo mkdir /opt/intel/eii/data/azure-blob-storage
+    sudo chown eiiuser:eiiuser /opt/intel/eii/data/azure-blob-storage
     ```
 
 2. Next, modify your deployment manifest to alter the bind location which the
-    Azure Blob Storage service uses. To do this, open your `*.template.json` file.
-    Provided you specified the Azure Blob Storage service, you should see something
-    like the following in your deployment manifest template:
+   Azure Blob Storage service uses. To do this, open your `*.template.json` file.
+   Provided you specified the Azure Blob Storage service, you should see something
+   like the following in your deployment manifest template:
 
     ```json
     {
@@ -999,7 +998,7 @@ host filesystem, then you must do the following:
     }
     ```
 
-    Change the `Binds` location to the following:
+   Change the `Binds` location to the following:
 
     ```javascript
     {
@@ -1019,19 +1018,19 @@ host filesystem, then you must do the following:
     }
     ```
 
-    Make sure to run the `iotedgedev geoncfig -f <manifest-template>` command
-    for the changes to be applied to the actual deployment manifest.
+   Make sure to run the `iotedgedev geoncfig -f <manifest-template>` command
+   for the changes to be applied to the actual deployment manifest.
 
-    When you run the Azure Bridge where it is configured to save the images into
-    an Azure Blob Storage instance, you should see the images by running the
-    following command:
+   When you run the Azure Bridge where it is configured to save the images into
+   an Azure Blob Storage instance, you should see the images by running the
+   following command:
 
     ```sh
-    $ sudo ls -l /opt/intel/eii/data/azure-blob-storage/BlockBlob/
+    sudo ls -l /opt/intel/eii/data/azure-blob-storage/BlockBlob/
     ```
 
-    In that directory, you will see a folder for each container. Inside that directory
-    will be the individually saved images.
+   In that directory, you will see a folder for each container. Inside that directory
+   will be the individually saved images.
 
 For more information on configuring your Azure Blob Storage instance at the
 edge, see the documentation for the service [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-store-data-blob).
@@ -1058,24 +1057,24 @@ section above. Then, instead of step 4, run the following command to setup
 the simulator:
 
 ```sh
-$ sudo env "PATH=$PATH" iotedgehubdev setup -c "<edge-device-connection-string>"
+sudo env "PATH=$PATH" iotedgehubdev setup -c "<edge-device-connection-string>"
 ```
 
-**NOTE:** The `env "PATH=$PATH"` above ensures that the `PATH` env variable set in 
+**NOTE:** The `env "PATH=$PATH"` above ensures that the `PATH` env variable set in
 the regular user context gets exported to `sudo` environment.
 
 Next, start the simulator with your deployment manifest template using the
 following command:
 
 ```sh
-$ ./tools/run-simulator.sh ./example.template.json
+./tools/run-simulator.sh ./example.template.json
 ```
 
 If everything is running smoothly, you should see messages being printed in the
 Simple Subscriber service using the following command:
 
 ```sh
-$ docker logs -f SimpleSubscriber
+docker logs -f SimpleSubscriber
 ```
 
 **IMPORTANT NOTE:**
@@ -1085,7 +1084,7 @@ on the same system. If you are using the same system, first stop the Azure IoT E
 Runtime daemon with the following command:
 
 ```sh
-$ sudo iotedge system stop
+sudo iotedge system stop
 ```
 
 Then, run the simulator as specified above.
@@ -1094,15 +1093,15 @@ Then, run the simulator as specified above.
 
 Below is a list of services supported by the Azure Bridge:
 
-* Video Ingestion
-* Video Analytics
+- Video Ingestion
+- Video Analytics
 
 ## Additional Resources
 
 For more resources on Azure IoT Hub and Azure IoT Edge, see the following
 references:
 
-* [Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/)
-* [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/)
-* [How to Deploy AzureML Models](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-deploy-and-where)
-* [AzureML Tutorial: Train your first ML Model](https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-1st-experiment-sdk-train)
+- [Azure IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/)
+- [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/)
+- [How to Deploy AzureML Models](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-deploy-and-where)
+- [AzureML Tutorial: Train your first ML Model](https://docs.microsoft.com/en-us/azure/machine-learning/tutorial-1st-experiment-sdk-train)
