@@ -32,7 +32,8 @@ assert os.path.exists(TEMPLATES_DIR), f'Cannot find {TEMPLATES_DIR}'
 # manifest
 SUPPORTED_SERVICES = [
     'AzureBridge', 'ia_video_ingestion', 'SimpleSubscriber',
-    'AzureBlobStorageonIoTEdge', 'ia_video_analytics'
+    'AzureBlobStorageonIoTEdge', 'ia_video_analytics',
+    'ia_configmgr_agent'
 ]
 
 # Parse command line arguments

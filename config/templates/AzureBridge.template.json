@@ -28,7 +28,7 @@
                     "Mounts": [
                         {
                             "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EII_CERTIFICATES/ca/ca_certificate.pem",
+                            "Source": "$EII_CERTIFICATES/rootca/cacert.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },

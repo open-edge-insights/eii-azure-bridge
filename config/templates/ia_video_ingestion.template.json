@@ -17,7 +17,6 @@
                     "ETCD_PREFIX=${ETCD_PREFIX}",
                     "GENICAM=Matrix_Vision",
                     "GST_DEBUG=0,gencamsrc:2",
-                    "CertType=zmq",
                     "AML_TENANT_ID=$AML_TENANT_ID",
                     "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
                     "AML_PRINCIPAL_PASS=$AML_PRINCIPAL_PASS"
@@ -59,7 +58,7 @@
                     "Mounts": [
                         {
                             "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EII_CERTIFICATES/ca/ca_certificate.pem",
+                            "Source": "$EII_CERTIFICATES/rootca/cacert.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },

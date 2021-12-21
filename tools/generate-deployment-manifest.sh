@@ -52,9 +52,9 @@ function check_error() {
     fi
 }
 
-eii_config="../build/provision/config/eii_config.json"
+eii_config="../build/eii_config.json"
 if [ ! -f "$eii_config" ] ; then
-    log_fatal "EII config \"${eii_config}\" does not exist, please provision"
+    log_fatal "EII config \"${eii_config}\" does not exist, please re-run builder.py if not run already"
 fi
 
 log_info "Populating .env file with EII .env variables"

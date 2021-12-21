@@ -47,13 +47,11 @@ def is_safe_path(basedir, path, follow_symlinks=True):
     return basedir == os.path.commonpath((basedir, matchpath))
 
 # Load JSON files
-if is_safe_path(os.getcwd(), args.config):
-    with open(args.config, 'r') as f:
-        config = json.load(f)
+with open(args.config, 'r') as f:
+   config = json.load(f)
 
-if is_safe_path(os.getcwd(), args.manifest):
-    with open(args.manifest, 'r') as f:
-        manifest = json.load(f)
+with open(args.manifest, 'r') as f:
+    manifest = json.load(f)
 
 # Serialize and populate the manifest
 config_str = json.dumps(config)

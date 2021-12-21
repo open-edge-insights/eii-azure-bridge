@@ -15,7 +15,6 @@
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST",
                     "ETCD_HOST=$ETCD_HOST",
                     "ETCD_PREFIX=${ETCD_PREFIX}",
-                    "CertType=zmq",
                     "PUBLISHER_ENDPOINT=0.0.0.0:65013",
                     "AML_TENANT_ID=$AML_TENANT_ID",
                     "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
@@ -58,7 +57,7 @@
                     "Mounts": [
                         {
                             "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EII_CERTIFICATES/ca/ca_certificate.pem",
+                            "Source": "$EII_CERTIFICATES/rootca/cacert.pem",
                             "Type": "bind",
                             "ReadOnly": true
                         },
