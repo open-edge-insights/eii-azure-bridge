@@ -294,8 +294,8 @@ First, you must then install the Azure IoT Edge Runtime on your target deploymen
 system. To do that, follow the instructions provided by Microsoft in
 [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux).
 
-Next, you must provision on your target deployment system. Follow the instructions
-provided in the EII READMEs/User Guide for completing this process.
+Next, you must provision on your target deployment system. This provisioning is supported
+by the configmanager agent azure module itself.
 
 While provisioning on your system, note that you only need to setup the
 Video Ingesiton and/or the Video Analytics containers. All other services are
@@ -318,21 +318,6 @@ docker-compose down
 This will stop and remove all of the previously running EII containers, allowing
 the Azure Bridge to run successfully.
 
-#### Expected Result
-
-When you have completed these steps, you should have the Azure IoT Edge Runtime
-installed (which includes Docker), and you should have the `ia_etcd` EII container
-running on your system.
-
-To confirm this, run the `docker ps` command. Your output should look similar to
-the following:
-
-```sh
-$ docker ps
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
-75121173d4d8        ia_etcd:2.3         "./start_etcd.sh"   11 days ago         Up 2 seconds                            ia_etcd
-```
-
 ### Step 2 - Configuring EII
 
 This step should be done from your development system, and not the edge node you
@@ -341,7 +326,7 @@ allow your system to deploy EII to your edge node. As noted earlier, for develop
 and testing purposes this could be the same system as your targeted edge device,
 but this is not recommended in a production environment.
 
-To configure EII, modify the `build/provision/config/eii_config.json` file. This
+To configure EII, modify the `build/eii_config.json` file. This
 should have been generated when the `build/builder.py` script was executed
 when building/pushing the EII containers to your ACR instance. If it does not
 exist, run this script based on the instructions provided in the EII README.
@@ -400,7 +385,7 @@ convenience scripts to ease this process.
 To generate your deployment manifest template, execute the following command:
 
 ```sh
-./tools/generate-deployment-manifest.sh example AzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
+./tools/generate-deployment-manifest.sh example ia_configmgr_agent AzureBridge SimpleSubscriber ia_video_ingestion ia_video_analytics
 ```
 
 > **NOTE:** If you are using Azure Blob Storage, include `AzureBlobStorageonIoTEdge`
@@ -434,39 +419,7 @@ you can re-add this to the Azure Bridge digital twin by running the following
 command:
 
 ```sh
-python3 tools/serialize_eii_config.py example.template.json ../build/provision/config/eii_config.json
-```
-
-**IMPORTANT NOTE:**
-To run inference on MYRIAD device, root user permissions needs to be used at runtime. To enable root user at runtime in  
-either ia_video_ingestion, ia_video_analytics add `"User": "root"` key as below: command in the ia_video_ingestion or
-ia_video_analytics manifest files as required.
-
-Eg: To use MYRAID device in `config/templates/ia_video_analytics.template.json` manifest file, refer the below example
-
-```javascript
-{
-// ... omitted ...
-
-    "modules": {
-        "ia_video_analytics": {
-            // ... omitted ...
-
-            "settings": {
-                "createOptions": {
-                    // ... omitted ..
-                    "User": "root",
-                    "Env": [
-                        // ... omitted ...
-                    ]
-                }
-            }
-
-            // ... omitted ...
-        }
-    }
-// ... omitted ...
-}
+python3 tools/serialize_eii_config.py example.template.json ../build/eii_config.json
 ```
 
 #### Expected Result
@@ -538,7 +491,7 @@ For more debugging info, see the following section.
 
 If you are encountering issues, the following commands can help with debugging:
 
-- **Azure IoT Edge Runtime Daemon Logs:** `journalctl -u iotedge -f`
+- **Azure IoT Edge Runtime Daemon Logs:** `sudo iotedge system logs -- -f`
 - **Container Logs:** `docker logs -f <CONTAINER-NAME>`
 
 ### Final Notes
@@ -668,7 +621,7 @@ modules. Or, you can see this configuration being set in the,
 
 If AzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure that
 - AzureBridge app's subscriber interfaces configuration matches to that of the
-  publisher app's publisher interfaces configuration in `build/provision/config/eii_config.json`
+  publisher app's publisher interfaces configuration in `build/eii_config.json`
   file.  Below is an example of the AzureBridge interface configuration subscribing to the
   publications coming from the VideoIngestion container.
   
@@ -790,10 +743,10 @@ the model and then run it. The source code for this UDF is in
 `Sample ONNX UDF` section in `[WORKDIR]/IEdgeInsights/common/video/udfs/README.md` for doing
 the required configuration for running this UDF.
 
-To use this UDF with EII, you need to modify your `build/provision/config/eii_config.json`
+To use this UDF with EII, you need to modify your `build/eii_config.json`
 configuration file to run the UDF in either your Video Ingesiton or Video Analytics
 instance. Please ensure to remove the existing PCB filter/classifier UDFs or any other UDFs
-in Video Ingestion and Video Analytics config keys in `build/provision/config/eii_config.json` as
+in Video Ingestion and Video Analytics config keys in `build/eii_config.json` as
 we are doing some basic pre-processing, inferencing and post-processing in the ONNX UDF itself.
 Then, you need to modify the environmental variables in the `AzureBridge/.env` file to provide the connection
 information to enable the UDF to download your model from AzureML. Make sure to follow the
@@ -1018,7 +971,7 @@ host filesystem, then you must do the following:
     }
     ```
 
-   Make sure to run the `iotedgedev geoncfig -f <manifest-template>` command
+   Make sure to run the `iotedgedev genconfig -f <manifest-template>` command
    for the changes to be applied to the actual deployment manifest.
 
    When you run the Azure Bridge where it is configured to save the images into
@@ -1093,6 +1046,7 @@ Then, run the simulator as specified above.
 
 Below is a list of services supported by the Azure Bridge:
 
+- Config Manager Agent
 - Video Ingestion
 - Video Analytics
 
