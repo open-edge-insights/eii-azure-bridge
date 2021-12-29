@@ -63,10 +63,10 @@ log_info "Installing azure-cli"
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 check_error "Failed to install azure-cli"
 
-log_info "Attempting to login to Azure"
-az login
-check_error "Failed to login to Azure"
-
 log_info "Installing azure-iot extension"
 az extension add --name azure-iot
 check_error "Failed to install azure-iot Azure CLI extension"
+
+log_info "Attempting to login to Azure"
+az login
+check_error "Failed to login to Azure"
