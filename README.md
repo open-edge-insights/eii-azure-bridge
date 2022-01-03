@@ -1010,7 +1010,7 @@ section above. Then, instead of step 4, run the following command to setup
 the simulator:
 
 ```sh
-sudo env "PATH=$PATH" iotedgehubdev setup -c "<edge-device-connection-string>"
+sudo -E env "PATH=$PATH" iotedgehubdev setup -c "<edge-device-connection-string>"
 ```
 
 **NOTE:** The `env "PATH=$PATH"` above ensures that the `PATH` env variable set in
