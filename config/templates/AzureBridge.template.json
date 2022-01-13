@@ -23,39 +23,10 @@
                 "HostConfig": {
                     "ReadonlyRootfs": true,
                     "Binds": [
-                        "$EII_INSTALL_PATH/sockets:/EII/sockets:rw"
-                    ],
-                    "Mounts": [
-                        {
-                            "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EII_CERTIFICATES/rootca/cacert.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_root_cert",
-                            "Source": "$EII_CERTIFICATES/root/root_client_certificate.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_root_key",
-                            "Source": "$EII_CERTIFICATES/root/root_client_key.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_AzureBridge_cert",
-                            "Source": "$EII_CERTIFICATES/AzureBridge/AzureBridge_client_certificate.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_AzureBridge_key",
-                            "Source": "$EII_CERTIFICATES/AzureBridge/AzureBridge_client_key.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        }
+                        "$EII_INSTALL_PATH/sockets:/EII/sockets:rw",
+                        "$EII_CERTIFICATES/rootca/cacert.pem:/run/secrets/rootca/cacert.pem",
+                        "$EII_CERTIFICATES/root:/run/secrets/root",
+                        "$EII_CERTIFICATES/AzureBridge:/run/secrets/AzureBridge"
                     ]
                 }
             }

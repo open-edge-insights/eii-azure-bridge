@@ -236,9 +236,9 @@ class BridgeState:
                 etcd = etcd3.client(host=hostname, port=port)
             else:
                 etcd = etcd3.client(host=hostname, port=port,
-                                    ca_cert='/run/secrets/ca_etcd',
-                                    cert_key='/run/secrets/etcd_root_key',
-                                    cert_cert='/run/secrets/etcd_root_cert')
+                                    ca_cert='/run/secrets/rootca/cacert.pem',
+                                    cert_key='/run/secrets/root/root_client_key.pem',
+                                    cert_cert='/run/secrets/root/root_client_certificate.pem')
         except Exception as e:
             self.log.exception(f'Exception raised when creating etcd'
                            f'client instance with error: {e}')

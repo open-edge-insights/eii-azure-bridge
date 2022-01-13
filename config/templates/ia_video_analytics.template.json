@@ -48,32 +48,14 @@
                         "/dev:/dev:rw",
                         "$EII_INSTALL_PATH/sockets:/EII/sockets:rw",
                         "/var/tmp:/var/tmp:rw",
-                        "/tmp:/tmp:rw"
+                        "/tmp:/tmp:rw",
+                        "$EII_CERTIFICATES/rootca/cacert.pem:/run/secrets/rootca/cacert.pem",
+                        "$EII_CERTIFICATES/VideoAnalytics:/run/secrets/VideoAnalytics"
                     ],
                     "LogConfig": {
                         "Type": "",
                         "Config": {}
-                    },
-                    "Mounts": [
-                        {
-                            "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EII_CERTIFICATES/rootca/cacert.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_VideoAnalytics_cert",
-                            "Source": "$EII_CERTIFICATES/VideoAnalytics/VideoAnalytics_client_certificate.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_VideoAnalytics_key",
-                            "Source": "$EII_CERTIFICATES/VideoAnalytics/VideoAnalytics_client_key.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        }
-                    ]
+                    }
                 }
             }
         }
