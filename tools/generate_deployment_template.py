@@ -59,10 +59,6 @@ for service in args.services:
 
     # Add some custom properties based on the selected services
     if service == 'AzureBridge':
-        if args.dev_mode:
-            # Remove certificate mounts if in dev-mode
-            settings = template[service]['settings']
-            del settings['createOptions']['HostConfig']['Mounts']
         if 'AzureBlobStorageonIoTEdge' in args.services:
             template[service]['env'] = {
                 'AZURE_STORAGE_CONNECTION_STRING': {
