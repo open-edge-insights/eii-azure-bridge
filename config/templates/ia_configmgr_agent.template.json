@@ -21,7 +21,7 @@
                     "ETCD_PEER_PORT=$ETCD_PEER_PORT",
                     "ETCD_NAME=$ETCD_NAME",
                     "ETCD_PREFIX=$ETCD_PREFIX",
-                    "ETCD_ROOT_PASSWORD"
+                    "ETCDROOT_PASSWORD"
                 ],
                 "ExposedPorts": {
                     "$ETCD_CLIENT_PORT/tcp": { },
