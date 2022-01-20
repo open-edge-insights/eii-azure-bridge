@@ -26,7 +26,8 @@ import argparse
 
 # Templates location
 TEMPLATES_DIR = os.path.join('config', 'templates')
-assert os.path.exists(TEMPLATES_DIR), f'Cannot find {TEMPLATES_DIR}'
+if not os.path.exists(TEMPLATES_DIR):
+    raise AssertionError('Cannot find {}'.format(TEMPLATES_DIR))
 
 # List of supported services to add (automatically) to the deployment
 # manifest

@@ -69,8 +69,10 @@ class BridgeState:
         .. warning:: This should *NEVER* be called directly by the application.
         """
         # Verify initial state
-        assert os.path.exists('config_schema.json'), 'Missing config schema'
-        assert BridgeState._instance is None, 'BridgeState already initialized'
+        if not os.path.exists('config_schema.json'):
+            raise AssertionError('Missing config schema')
+        if BridgeState._instance is not None:
+            raise AssertionError('BridgeState already initialized')
         BridgeState._instance = self
 
         # Configure initial logging
@@ -180,8 +182,8 @@ class BridgeState:
             for (in_topic, topic_conf) in config['topics'].items():
                 self.log.info(f'Creating subscriber {in_topic}')
                 self.log.debug(f'{in_topic} config: {topic_conf}')
-                assert 'az_output_topic' in topic_conf, \
-                       'Missing az_output_topic'
+                if 'az_output_topic' not in topic_conf:
+                    raise AssertionError('Missing az_output_topic')
 
                 if self.bsc is not None and \
                         'az_blob_container_name' in topic_conf:

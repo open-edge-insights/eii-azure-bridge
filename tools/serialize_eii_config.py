@@ -33,8 +33,10 @@ ap.add_argument('config', help='EII pre-load configuration path')
 args = ap.parse_args()
 
 # Verify the input files exist
-assert os.path.exists(args.config), f'{args.config} does not exist'
-assert os.path.exists(args.manifest), f'{args.manifest} does not exist'
+if not os.path.exists(args.config):
+    raise AssertionError('{} does not exist'.format(args.config))
+if not os.path.exists(args.manifest):
+    raise AssertionError('{} does not exist'.format(args.manifest))
 
 print('[INFO] Populating EII configuration into Azure manifest')
 
