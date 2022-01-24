@@ -165,10 +165,13 @@ Once this is completed, install the required components to user the Azure CLI
 and development tools. The script `./tools/install-dev-tools.sh` automates this
 process. To run this script, execute the following command:
 
-**Note**: It is highly recommended that you use a python virtual environment to
-install the python packages, so that the system python installation doesn't
-get altered. Details on setting up and using python virtual environment can
-be found here: <https://www.geeksforgeeks.org/python-virtual-environment/>
+> **Note**:
+> - It is highly recommended that you use a python virtual environment to
+  install the python packages, so that the system python installation doesn't
+  get altered. Details on setting up and using python virtual environment can
+  be found here: <https://www.geeksforgeeks.org/python-virtual-environment/>
+> - If one encounter issues with conflicting dependencies between python packages,
+  please upgrade the pip version: `pip3 install -U pip` and try.
 
 ```sh
 sudo -H -E -u ${USER} ./tools/install-dev-tools.sh
