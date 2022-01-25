@@ -24,7 +24,7 @@
                     "ReadonlyRootfs": true,
                     "Binds": [
                         "$EII_INSTALL_PATH/sockets:/EII/sockets:rw",
-                        "$EII_CERTIFICATES/rootca/cacert.pem:/run/secrets/rootca/cacert.pem",
+                        "$EII_CERTIFICATES/rootca:/run/secrets/rootca",
                         "$EII_CERTIFICATES/root:/run/secrets/root",
                         "$EII_CERTIFICATES/AzureBridge:/run/secrets/AzureBridge"
                     ]

@@ -51,7 +51,7 @@
                         "$EII_INSTALL_PATH/sockets:/EII/sockets:rw",
                         "/var/tmp:/var/tmp:rw",
                         "/tmp:/tmp:rw",
-                        "$EII_CERTIFICATES/rootca/cacert.pem:/run/secrets/rootca/cacert.pem",
+                        "$EII_CERTIFICATES/rootca:/run/secrets/rootca",
                         "$EII_CERTIFICATES/VideoIngestion:/run/secrets/VideoIngestion"
                     ],
                     "LogConfig": {
