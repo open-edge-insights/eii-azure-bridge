@@ -159,7 +159,7 @@ class BridgeState:
 
         self.log.info('Getting EII Message Bus configuration')
         ipc_msgbus_config, tcp_msgbus_config = get_msgbus_config(
-                self.app_name, self.config_mgr, self.dev_mode)
+            self.app_name, self.config_mgr, self.dev_mode)
 
         self.log.debug(f'Topic msgbus config dict: \nIPC: '
                        f'{ipc_msgbus_config}, \nTCP:{tcp_msgbus_config}')
@@ -198,7 +198,7 @@ class BridgeState:
                     msgbus_ctx = self.tcp_msgbus_ctxs[in_topic]
                 else:
                     raise RuntimeError(
-                            f'Cannot find {in_topic} msgbus context')
+                        f'Cannot find {in_topic} msgbus context')
 
                 # Initialize the subcsriber
                 subscriber = msgbus_ctx.new_subscriber(in_topic)
@@ -243,7 +243,7 @@ class BridgeState:
                                     cert_cert='/run/secrets/root/root_client_certificate.pem')
         except Exception as e:
             self.log.exception(f'Exception raised when creating etcd'
-                           f'client instance with error: {e}')
+                               f'client instance with error: {e}')
             raise e
         resp = etcd.get_all()
         eii_config = {}
@@ -260,7 +260,7 @@ class BridgeState:
         self.log.debug('Finding changes in EII configuration')
         new_eii_config = json.loads(config['eii_config'])
         changed_keys, removed_keys = find_root_changes(
-                eii_config, new_eii_config)
+            eii_config, new_eii_config)
 
         self.log.debug(f'Changed service configs: {changed_keys}')
         self.log.debug(f'Removed service configs: {removed_keys}')
@@ -271,7 +271,7 @@ class BridgeState:
         for key in changed_keys:
             self.log.debug(f'Pushing config for {key}')
             etcd.put(
-                    key, json.dumps(new_eii_config[key], indent=4))
+                key, json.dumps(new_eii_config[key], indent=4))
             self.log.debug(f'Successfully pushed config for {key}')
 
         self.log.debug('Deleting removed service configs')

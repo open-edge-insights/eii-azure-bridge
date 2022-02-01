@@ -40,6 +40,7 @@ if not os.path.exists(args.manifest):
 
 print('[INFO] Populating EII configuration into Azure manifest')
 
+
 def is_safe_path(basedir, path, follow_symlinks=True):
     # resolves symbolic links
     if follow_symlinks:
@@ -50,7 +51,7 @@ def is_safe_path(basedir, path, follow_symlinks=True):
 
 # Load JSON files
 with open(args.config, 'r') as f:
-   config = json.load(f)
+    config = json.load(f)
 
 with open(args.manifest, 'r') as f:
     manifest = json.load(f)
