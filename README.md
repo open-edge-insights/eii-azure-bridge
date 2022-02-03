@@ -708,34 +708,7 @@ The `topics` value is a JSON object, where each key is a topic from the EII Mess
 Bus which will be re-published onto the Azure IoT Edge Runtime. The value for
 the topic key will be an additional JSON object, where there is one required
 key, `az_output_topic`, which is the topic on Azure IoT Edge Runtime to use and
-then an optional key, `az_blob_container_name`. This key specifies the Azure Blob
-Storage container to store the images from the EII video analytics pipeline in.
-If the `az_blob_container_name` key is not specified, then the images will
-not be saved.
-
-> **IMPORTANT NOTE:** "Container" in the Azure Blob Storage context is not
-> referencing a Docker container, but rather a storage structure within the
-> Azure Blob Storage instance running on your edge device. For more information
-> on the data structure of Azure Blob Storage, see
-> [this link](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blob-storage-resources).
-
-**IMPORTANT NOTE**
-
-The Azure Blob Storage service places strict requirements on the name of the,
-"container", under which it stores blobs. This impacts the value given for the
-`az_blob_container_name` configuration key. According to the Azure documentation,
-the name must a valid DNS name adhering to the following rules:
-
-- Container names must start or end with a letter or number, and can contain
-    only letters, numbers, and the dash (-) character.
-- Every dash (-) character must be immediately preceded and followed by a
-    letter or number; consecutive dashes are not permitted in container names.
-- All letters in a container name must be lowercase.
-- Container names must be from 3 through 63 characters long.
-
-For more information on the name conventions/restrictions for Azure Blob Storage
-container names, see [this](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata)
-page of the Azure documentation.
+then an optional key, `az_blob_container_name`.
 
 ### Sample EII ONNX UDF
 
@@ -919,8 +892,9 @@ host filesystem, then you must do the following:
    to use the following commands:
 
     ```sh
-    sudo mkdir /opt/intel/eii/data/azure-blob-storage
-    sudo chown eiiuser:eiiuser /opt/intel/eii/data/azure-blob-storage
+    source [WORK_DIR]/IEdgeInsights/build/.env
+    sudo mkdir -p /opt/intel/eii/data/azure-blob-storage
+    sudo chown ${EII_UID}:${EII_UID} /opt/intel/eii/data/azure-blob-storage
     ```
 
 2. Next, modify your deployment manifest to alter the bind location which the
@@ -973,8 +947,53 @@ host filesystem, then you must do the following:
         }
     }
     ```
+3. Add the `az_blob_container_name` key as below in `example.template.json` file, this 
+   specifies the Azure Blob Storage container to store the images from the EII video analytics pipeline in.
+   If the `az_blob_container_name` key is not specified, then the images will not be saved.
 
-   Make sure to run the `iotedgedev genconfig -f <manifest-template>` command
+    ```javascript
+    {
+        "AzureBridge": {
+            "properties.desired": {
+                // ...
+                "topics": {
+                    "camera1_stream_results": {
+                        "az_output_topic": "camera1_stream_results",
+                        "az_blob_container_name": "camera1streamresults"
+                    }
+                },
+                // ...
+            }
+        }
+    }
+    ```
+
+> **IMPORTANT NOTE:** "Container" in the Azure Blob Storage context is not
+> referencing a Docker container, but rather a storage structure within the
+> Azure Blob Storage instance running on your edge device. For more information
+> on the data structure of Azure Blob Storage, see
+> [this link](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction#blob-storage-resources).
+
+**IMPORTANT NOTE**
+
+The Azure Blob Storage service places strict requirements on the name of the,
+"container", under which it stores blobs. This impacts the value given for the
+`az_blob_container_name` configuration key. According to the Azure documentation,
+the name must a valid DNS name adhering to the following rules:
+
+- Container names must start or end with a letter or number, and can contain
+    only letters, numbers, and the dash (-) character.
+- Every dash (-) character must be immediately preceded and followed by a
+    letter or number; consecutive dashes are not permitted in container names.
+- All letters in a container name must be lowercase.
+- Container names must be from 3 through 63 characters long.
+
+For more information on the name conventions/restrictions for Azure Blob Storage
+container names, see [this](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata)
+page of the Azure documentation.
+
+
+4. Make sure to run the `iotedgedev genconfig -f <manifest-template>` command
    for the changes to be applied to the actual deployment manifest.
 
    When you run the Azure Bridge where it is configured to save the images into
@@ -990,7 +1009,6 @@ host filesystem, then you must do the following:
 
 For more information on configuring your Azure Blob Storage instance at the
 edge, see the documentation for the service [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-store-data-blob).
-
 Also see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-blob)
 as well.
 
