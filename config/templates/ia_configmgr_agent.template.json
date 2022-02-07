@@ -44,7 +44,7 @@
                         "$EII_CERTIFICATES:/EII/Certificates:rw",
                         "$EII_CERTIFICATES/../eii_config.json:/EII/etcd/config/eii_config.json",
                         "$EII_INSTALL_PATH/sockets:$SOCKET_DIR",
-                        "$EII_INSTALL_PATH/data/etcd:$ETCD_DATA_DIR",
+                        "$EII_INSTALL_PATH/data/etcd:$ETCD_DATA_DIR/etcd_capture",
                         "$EII_INSTALL_PATH:$EII_INSTALL_PATH",
                         "$EII_INSTALL_PATH/data:/data"
                     ],
