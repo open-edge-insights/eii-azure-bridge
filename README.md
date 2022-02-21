@@ -8,13 +8,12 @@
     - [Development System Setup](#development-system-setup)
   - [Build and Push EII Containers](#build-and-push-eii-containers)
   - [Single-Node Azure IoT Edge Deployment](#single-node-azure-iot-edge-deployment)
-    - [Step 1 - Provisioning](#step-1---provisioning)
+    - [Step 1 - Provisioning](#step-1-provisioning)
+    - [Step 2 - Configuring EII](#step-2-configuring-eii)
       - [Expected Result](#expected-result)
-    - [Step 2 - Configuring EII](#step-2---configuring-eii)
+    - [Step 3 - Configuring Azure IoT Deployment Manifest](#step-3-configuring-azure-iot-deployment-manifest)
       - [Expected Result](#expected-result-1)
-    - [Step 3 - Configuring Azure IoT Deployment Manifest](#step-3---configuring-azure-iot-deployment-manifest)
-      - [Expected Result](#expected-result-2)
-    - [Step 4 - Deployment](#step-4---deployment)
+    - [Step 4 - Deployment](#step-4-deployment)
       - [Expected Results](#expected-results)
     - [Helpful Debugging Commands](#helpful-debugging-commands)
     - [Final Notes](#final-notes)
@@ -671,7 +670,7 @@ If AzureBridge is subscribing to publisher over a ZeroMQ IPC socket, ensure that
   iotedgedev genconfig -f example.template.json
   ```
 
-- Please follow `Step 4 - Deployment` above for deployment
+- Please follow  [Step 4 - Deployment](#step-4-deployment)  above for deployment
   
 Below is an example digital twin for the Azure Bridge:
 
@@ -793,7 +792,7 @@ az ad sp create-for-rbac --sdk-auth --name ml-auth
 
 The output of above command will be in json format. Please update the `AML_` env variables in `AzureBridge/.env`
 as per above table and follow the steps [Step 3](#step-3---configuring-azure-iot-deployment-manifest) and
-[Step 4](#step-4---deployment) to see the `sample_onnx` UDF working fine.
+[Step 4](#step-4-deployment) to see the `sample_onnx` UDF working fine.
 
 **IMPORTANT NOTE:**
 
@@ -993,12 +992,12 @@ container names, see [this](https://docs.microsoft.com/en-us/rest/api/storageser
 page of the Azure documentation.
 
 
-4. Make sure to run the `iotedgedev genconfig -f <manifest-template>` command
-   for the changes to be applied to the actual deployment manifest.
+4. Make sure to run the `iotedgedev genconfig -f example.template.json` command
+   for the changes to be applied to the actual deployment manifest: `./config/example.amd64.json`/
 
-   When you run the Azure Bridge where it is configured to save the images into
-   an Azure Blob Storage instance, you should see the images by running the
-   following command:
+   Please follow [Step 4 - Deployment](#step-4-deployment) step to deploy the azure modules.
+
+   One should see the images by running the following command:
 
     ```sh
     sudo ls -l /opt/intel/eii/data/azure-blob-storage/BlockBlob/
@@ -1007,10 +1006,35 @@ page of the Azure documentation.
    In that directory, you will see a folder for each container. Inside that directory
    will be the individually saved images.
 
-For more information on configuring your Azure Blob Storage instance at the
-edge, see the documentation for the service [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-store-data-blob).
-Also see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-blob)
-as well.
+
+5. **(OPTIONAL)** For pushing the saved images to Azure portal, update the `properties.desired` key of [AzureBlobStorageonIOTEdge.template.json](config/templates/AzureBlobStorageonIOTEdge.template.json)
+   as below with the right applicable values:
+
+   ```javascript
+    "properties.desired": {
+        "deviceToCloudUploadProperties": {
+            "uploadOn": true,
+            "cloudStorageConnectionString" : "<KEY_IN_THE_REQUIRED_CONNECTION_STRING",
+            "storageContainersForUpload":{
+                "camera1streamresults": {
+                        "target": "camera1streamresults"
+                }
+            }
+            
+        },
+        "deviceAutoDeleteProperties": {
+            "deleteOn": false,
+            "deleteAfterMinutes": 5
+        }
+    }
+   ``` 
+   Re-run the above step 4 to re-deploy the Azure Blob storage with above config.
+
+> **NOTE:**
+> For more information on configuring your Azure Blob Storage instance at the
+> edge, see the documentation for the service [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-store-data-blob).
+> Also see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-blob)
+> as well.
 
 ### Azure Deployment Manifest
 
@@ -1070,6 +1094,12 @@ Below is a list of services supported by the Azure Bridge:
 - Config Manager Agent
 - Video Ingestion
 - Video Analytics
+
+> **NOTE:**:
+> As `Config Manager Agent` responsible for EII provisioning is deployed as azure module, it becomes
+> essential to have other EII services to be deployed as azure modules to talk to other EII azure modules.
+> Ensure to add the app names to the `SERVICES` environment key of `Config Manager Agent` module template
+> file at [ia_configmgr_agent.template.json](config/template/ia_configmgr_agent.template.json).
 
 ## Additional Resources
 
