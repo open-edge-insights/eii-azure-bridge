@@ -1043,6 +1043,12 @@ see [this guide](https://docs.microsoft.com/en-us/azure/iot-edge/module-composit
 
 ## Azure IoT Edge Simulator
 
+> **NOTE:**
+> We are facing issue with `iotedgehubdev` Azure IoT edge simulator tool where we aren't 
+> seeing the modules being deployed. An issue on the same is been raised at 
+> https://github.com/Azure/iotedgehubdev/issues/370 and is been followed up
+
+
 Microsoft provides a simluator for the Azure IoT Edge Runtime. During the
 setup of your development system (covered in the [Development System Setup](#development-system-setup)
 section), the simulator is automatically installed on your system.
