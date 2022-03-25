@@ -655,7 +655,7 @@ Each key in the configuration above is described in the table below.
 
 |       Key       |                                              Description                                       |
 | :-------------: | ---------------------------------------------------------------------------------------------- |
-| `log_level`     | This is the logging level for the Azure Bridge module, must be INFO, DEBUG, WARN, or ERROR |
+| `log_level`     | This is the logging level for the Azure Bridge module, must be INFO, DEBUG, WARN, or ERROR     |
 | `topics`        | Configuration for the topics to map from the OEI Message Bus into the Azure IoT Edge Runtime   |
 | `eii_config`    | Entire serialized configuration for OEI; this configuration will be placed in ETCD             |
 
