@@ -5,7 +5,7 @@
         "status": "running",
         "restartPolicy": "always",
         "settings": {
-            "image": "${DOCKER_REGISTRY}ia_configmgr_agent:$EII_VERSION",
+            "image": "${DOCKER_REGISTRY}openedgeinsights/ia_configmgr_agent:$EII_VERSION",
             "createOptions": {
                 "Hostname": "ia_configmgr_agent",
                 "Env": [
