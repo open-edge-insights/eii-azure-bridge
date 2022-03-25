@@ -26,13 +26,15 @@ import argparse
 
 # Templates location
 TEMPLATES_DIR = os.path.join('config', 'templates')
-assert os.path.exists(TEMPLATES_DIR), f'Cannot find {TEMPLATES_DIR}'
+if not os.path.exists(TEMPLATES_DIR):
+    raise AssertionError('Cannot find {}'.format(TEMPLATES_DIR))
 
 # List of supported services to add (automatically) to the deployment
 # manifest
 SUPPORTED_SERVICES = [
     'AzureBridge', 'ia_video_ingestion', 'SimpleSubscriber',
-    'AzureBlobStorageonIoTEdge', 'ia_video_analytics'
+    'AzureBlobStorageonIoTEdge', 'ia_video_analytics',
+    'ia_configmgr_agent'
 ]
 
 # Parse command line arguments
@@ -58,10 +60,6 @@ for service in args.services:
 
     # Add some custom properties based on the selected services
     if service == 'AzureBridge':
-        if args.dev_mode:
-            # Remove certificate mounts if in dev-mode
-            settings = template[service]['settings']
-            del settings['createOptions']['HostConfig']['Mounts']
         if 'AzureBlobStorageonIoTEdge' in args.services:
             template[service]['env'] = {
                 'AZURE_STORAGE_CONNECTION_STRING': {

@@ -14,19 +14,13 @@
                     "PROFILING_MODE=$PROFILING_MODE",
                     "no_proxy=localhost,127.0.0.1,$ETCD_HOST",
                     "ETCD_HOST=$ETCD_HOST",
-                    "ETCD_PREFIX=${ETCD_PREFIX}",
-                    "CertType=zmq",
+                    "ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT",
+                    "ETCD_PREFIX=$ETCD_PREFIX",
                     "PUBLISHER_ENDPOINT=0.0.0.0:65013",
                     "AML_TENANT_ID=$AML_TENANT_ID",
                     "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
                     "AML_PRINCIPAL_PASS=$AML_PRINCIPAL_PASS"
                 ],
-                "Volumes": {
-                    "/dev": {},
-                    "/EII/sockets": {},
-                    "/var/tmp": {},
-                    "/tmp": {}
-                },
                 "NetworkingConfig": {
                     "EndpointsConfig": {
                         "host": {}
@@ -49,32 +43,14 @@
                         "/dev:/dev:rw",
                         "$EII_INSTALL_PATH/sockets:/EII/sockets:rw",
                         "/var/tmp:/var/tmp:rw",
-                        "/tmp:/tmp:rw"
+                        "/tmp:/tmp:rw",
+                        "$EII_CERTIFICATES/rootca:/run/secrets/rootca",
+                        "$EII_CERTIFICATES/VideoAnalytics:/run/secrets/VideoAnalytics"
                     ],
                     "LogConfig": {
                         "Type": "",
                         "Config": {}
-                    },
-                    "Mounts": [
-                        {
-                            "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EII_CERTIFICATES/ca/ca_certificate.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_VideoAnalytics_cert",
-                            "Source": "$EII_CERTIFICATES/VideoAnalytics/VideoAnalytics_client_certificate.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_VideoAnalytics_key",
-                            "Source": "$EII_CERTIFICATES/VideoAnalytics/VideoAnalytics_client_key.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        }
-                    ]
+                    }
                 }
             }
         }

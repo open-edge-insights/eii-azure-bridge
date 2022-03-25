@@ -27,11 +27,16 @@ import re
 VARS = [
     'EII_VERSION',
     'DEV_MODE',
+    "SOCKET_DIR",
     'PROFILING_MODE',
     'EII_USER_NAME',
     'EII_UID',
     'ETCD_HOST',
     'ETCD_PREFIX',
+    'ETCDROOT_PASSWORD',
+    'ETCD_DATA_DIR',
+    'ETCD_CLIENT_PORT',
+    'ETCD_PEER_PORT',
     'SOCKET_DIR',
     'EII_INSTALL_PATH',
     'DOCKER_REGISTRY',
@@ -43,8 +48,10 @@ parent_env_fn = os.path.join('..', 'build', '.env')
 this_env_fn = '.env'
 
 # Verify required files exist
-assert os.path.exists(parent_env_fn), f'Cannot find {parent_env_fn} file'
-assert os.path.exists(this_env_fn), f'Cannot find {this_env_fn}'
+if not os.path.exists(parent_env_fn):
+    raise AssertionError('Cannot find {} file'.format(parent_env_fn))
+if not os.path.exists(this_env_fn):
+    raise AssertionError('Cannot find {}'.format(this_env_fn))
 
 # Read .env files
 with open(parent_env_fn, 'r') as f:

@@ -25,7 +25,8 @@ import base64
 
 
 # Verify the .env file exists
-assert os.path.exists('.env'), 'Cannot find the ".env" file'
+if not os.path.exists('.env'):
+    raise AssertionError('Cannot find the ".env" file')
 
 print('[INFO] Generating random 64-byte base64 encoded account key')
 

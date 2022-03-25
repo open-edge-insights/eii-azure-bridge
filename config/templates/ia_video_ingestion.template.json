@@ -14,20 +14,15 @@
                     "PROFILING_MODE=$PROFILING_MODE",
                     "no_proxy=localhost,127.0.0.1,${RTSP_CAMERA_IP},$ETCD_HOST",
                     "ETCD_HOST=$ETCD_HOST",
-                    "ETCD_PREFIX=${ETCD_PREFIX}",
+                    "ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT",
+                    "ETCD_PREFIX=$ETCD_PREFIX",
+                    "PIPELINE: $PIPELINE",
                     "GENICAM=Matrix_Vision",
                     "GST_DEBUG=0,gencamsrc:2",
-                    "CertType=zmq",
                     "AML_TENANT_ID=$AML_TENANT_ID",
                     "AML_PRINCIPAL_ID=$AML_PRINCIPAL_ID",
                     "AML_PRINCIPAL_PASS=$AML_PRINCIPAL_PASS"
                 ],
-                "Volumes": {
-                    "/dev": {},
-                    "/EII/sockets": {},
-                    "/var/tmp": {},
-                    "/tmp": {}
-                },
                 "NetworkingConfig": {
                     "EndpointsConfig": {
                         "host": {}
@@ -44,38 +39,22 @@
                     ],
                     "DeviceCgroupRules": [
                         "c 189:* rmw",
-                        "c 209:* rmw"
+                        "c 209:* rmw",
+                        "a 189:* rwm"
                     ],
                     "Binds": [
                         "/dev:/dev:rw",
                         "$EII_INSTALL_PATH/sockets:/EII/sockets:rw",
                         "/var/tmp:/var/tmp:rw",
-                        "/tmp:/tmp:rw"
+                        "/tmp:/tmp:rw",
+                        "/run/udev:/run/udev:ro",
+                        "$EII_CERTIFICATES/rootca:/run/secrets/rootca",
+                        "$EII_CERTIFICATES/VideoIngestion:/run/secrets/VideoIngestion"
                     ],
                     "LogConfig": {
                         "Type": "",
                         "Config": {}
-                    },
-                    "Mounts": [
-                        {
-                            "Target": "/run/secrets/ca_etcd",
-                            "Source": "$EII_CERTIFICATES/ca/ca_certificate.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_VideoIngestion_cert",
-                            "Source": "$EII_CERTIFICATES/VideoIngestion/VideoIngestion_client_certificate.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        },
-                        {
-                            "Target": "/run/secrets/etcd_VideoIngestion_key",
-                            "Source": "$EII_CERTIFICATES/VideoIngestion/VideoIngestion_client_key.pem",
-                            "Type": "bind",
-                            "ReadOnly": true
-                        }
-                    ]
+                    }
                 }
             }
         }
