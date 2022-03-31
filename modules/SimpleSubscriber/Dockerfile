@@ -25,7 +25,7 @@ ARG EII_USER_NAME
 
 # Setting python dev env
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3-pip && \
+    apt-get install -y --no-install-recommends python3-minimal python3-pip && \
     ln -sf /usr/bin/pip3 /usr/bin/pip && \
     python3 -m pip install -U pip
 
@@ -38,6 +38,7 @@ COPY requirements.txt ./
 RUN python3 -m pip install -r requirements.txt
 
 COPY . .
+RUN apt-get remove --auto-remove --purge -y python3-pip
 
 HEALTHCHECK NONE
 CMD [ "python3", "-u", "./main.py" ]
